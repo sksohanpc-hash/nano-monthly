@@ -73,7 +73,6 @@
       overflow:hidden;
       text-overflow:ellipsis;
       max-width:70vw;
-     
     }
     .navBadge{
       font-size:12px;
@@ -147,16 +146,6 @@
       font-weight:1000;
       color:#0f172a;
       background:#fff;
-    }
-    .sbHint{
-      margin-top:14px;
-      font-size:12px;
-      line-height:1.5;
-      color:rgba(229,231,235,.70);
-      padding:10px 12px;
-      border-radius:14px;
-      border:1px dashed rgba(255,255,255,.14);
-      background: rgba(255,255,255,.05);
     }
 
     .overlay{
@@ -406,9 +395,10 @@
         </div>
         <div style="font-weight:1000;font-size:18px;letter-spacing:.2px;">NANOKINGFISHER</div>
         <div class="fixedInfo">
-          <span class="muted">Address:</span> MYMENSINGH MASKANDA
-          <br><span class="muted">Phone:</span> 01805003217
-          <br><span class="muted">Email:</span> nanokingfisher@gmail.com
+       <span class="muted">Contact:</span> 01805003217
+          <br><span class="muted">Email:</span> nanokingfisher@gmail.com 
+            <br>  <span class="muted">Address:</span> MYMENSINGH MASKANDA
+         
         </div>
       </div>
 
@@ -521,7 +511,7 @@
         <div class="row2">
           <div class="field">
             <label>bKash</label>
-            <input id="payBkash" value="01XXXXXXXXX" />
+            <input id="payBkash" value="01777777X" />
           </div>
           <div class="field">
             <label>Nagad</label>
@@ -531,7 +521,12 @@
 
         <div class="field" style="margin-top:10px">
           <label>Bank (single line)</label>
-          <input id="payBank" value="A/C Name, A/C No, Branch" />
+          <input id="payBank" value="CITY BANK " />
+        </div>
+          <div class="field">
+            <label>A/C No.</label>
+            <input id="payac" value="000000" />
+          </div>
         </div>
 
         <div class="hint">• এগুলো ডিফল্ট—আপনি চাইলে বদলাতে পারবেন।</div>
@@ -724,13 +719,11 @@
   }
 
   function findAmountHeaderIndex(){
-    // keep existing logic (title-based) but Amount is fixed key anyway
     const keys = ["amount", "tk", "taka", "৳", "টাকা"];
     for(let i=0;i<headers.length;i++){
       const t = (headers[i].title || "").toLowerCase();
       if(keys.some(k => t.includes(k))) return i;
     }
-    // fallback to fixed key
     const idx = headers.findIndex(h => h.__key === "amount");
     return idx;
   }
@@ -782,7 +775,8 @@
 
     el("payBkash").value = "01XXXXXXXXX";
     el("payNagad").value = "01XXXXXXXXX";
-    el("payBank").value = "A/C Name, A/C No, Branch";
+    el("payBank").value = "City Bank";
+    el("payac").value = "00000";
 
     el("notes").value = defaultTerms;
 
@@ -801,39 +795,38 @@
     const invDate = (el("invDate").value || "").trim() || "";
 
     const billCompany = (el("billCompany").value || "").trim();
-    const billName = (el("billName").value || "").trim(); // empty => PDF hide
+    const billName = (el("billName").value || "").trim();
     const billPhone = (el("billPhone").value || "").trim();
     const billAddr = (el("billAddr").value || "").trim();
 
     const notes = (el("notes").value || "").trim() || defaultTerms;
 
-    const payment = {
-      bkash: (el("payBkash").value || "").trim(),
-      nagad: (el("payNagad").value || "").trim(),
-      bank: (el("payBank").value || "").trim()
-    };
+   
+      const payment = {
+  bkash: (el("payBkash").value || "").trim(),
+  nagad: (el("payNagad").value || "").trim(),
+  bank:  (el("payBank").value  || "").trim(),
+};
 
     const amounts = calc();
 
-    // active headers but preserve forced order (desc ... middle ... amount)
-    const activeHeaders = headers
-      .map(h => ({
-        __key: h.__key || "",
-        title:(h.title||"").trim(),
-        lines:(h.lines||[]).map(x=>String(x ?? ""))
-      }))
-      .filter(h => h.title !== "" || h.lines.some(v => String(v).trim() !== ""));
+    // ✅ IMPORTANT: Keep headers even if empty (so blank columns remain in table)
+    const activeHeaders = headers.map(h => ({
+      __key: h.__key || "",
+      title:(h.title||""),
+      lines:(h.lines||[]).map(x=>String(x ?? ""))
+    }));
 
     return {
       fixedBiz: {
         name: "NANOKINGFISHER",
         address: "MYMENSINGH MASKANDA",
-        phone: "01805003217",
+        Contact: "01805003217",
         email: "nanokingfisher@gmail.com"
       },
       invNo,
       invDate,
-      billToText: "Bill To",     // fixed
+      billToText: "Bill To",
       billCompany,
       billName,
       billPhone,
@@ -848,7 +841,6 @@
   // events
   el("btnAddHeader").addEventListener("click", ()=>{
     normalizeHeaderOrder();
-    // Insert always between Description and Amount (before amount)
     const amountIdx = headers.findIndex(h => h.__key === "amount");
     const insertAt = (amountIdx === -1) ? headers.length : amountIdx;
     headers.splice(insertAt, 0, { __key:"", title:"", lines:[""] });
@@ -860,11 +852,12 @@
 
   el("btnReset").addEventListener("click", resetAll);
 
+  // ✅ Preview: new tab বন্ধ (same tab)
   el("btnPreview").addEventListener("click", ()=>{
     recalcUI();
     const data = collectData();
     localStorage.setItem("NKF_INVOICE_DATA", JSON.stringify(data));
-    window.open("pdf.html", "_blank");
+    window.location.href = "pdf.html";
   });
 
   // init
