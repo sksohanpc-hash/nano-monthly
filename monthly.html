@@ -14,10 +14,17 @@
       --bg:#f2f4f8; --card:#fff; --text:#0f172a; --muted:#64748b;
       --line: rgba(15,23,42,.12); --radius:16px; --shadow: 0 18px 60px rgba(15,23,42,.12);
       --pri:#2563eb; --danger:#ef4444; --ok:#16a34a;
+
+      /* ✅ Sidebar/Nav vars */
+      --sbw: 270px;
+      --navh: 58px;
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    .wrap{max-width:1050px;margin:18px auto;padding:14px}
+
+    /* ✅ wrap top space for navbar */
+    .wrap{max-width:1050px;margin:18px auto;padding:14px;padding-top: calc(var(--navh) + 10px);}
+
     .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
 
     .topbar{
@@ -103,14 +110,13 @@
       overflow:auto;
     }
 
-    /* ✅ side space কমাতে padding কমানো হলো */
     .a4{
       width:210mm;
       min-height:297mm;
       background:#fff;
       border:1px solid rgba(0,0,0,.08);
       box-shadow:0 12px 40px rgba(0,0,0,.18);
-      padding:10mm; /* আগে 16mm ছিল */
+      padding:10mm;
     }
 
     .title{text-align:center}
@@ -119,11 +125,10 @@
     .title .date{margin-top:8px;font-size:12px;color:#111827}
     .divider{margin:10px 0;border-top:2px solid rgba(15,23,42,.20)}
 
-    /* ✅ Income & Expense এর মাঝের gap বাড়ানো হলো */
     .cols{
       display:grid;
       grid-template-columns:1fr 1fr;
-      gap:28px; /* আগে 18px ছিল */
+      gap:28px;
       margin-top:6px
     }
 
@@ -143,10 +148,170 @@
       .noPrint{display:none !important}
       .a4{box-shadow:none;border:none}
       .previewShell{padding:0}
+      .navbar,.sidebar,.overlay{display:none !important}
+      .wrap{padding-top:0 !important}
     }
+
+    /* ================= NAVBAR + SIDEBAR (ADDED) ================= */
+    .navbar{
+      position:fixed;
+      top:0;left:0;right:0;
+      height:var(--navh);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:0 14px;
+      background: linear-gradient(135deg,#0f172a,#1e293b);
+      color:#fff;
+      z-index:2000;
+      box-shadow:0 14px 40px rgba(0,0,0,.22);
+    }
+    .navLeft{display:flex;align-items:center;gap:12px;min-width:0;}
+    .menuBtn{
+      width:42px;height:42px;
+      border-radius:12px;
+      display:grid;place-items:center;
+      cursor:pointer;
+      user-select:none;
+      font-size:22px;
+      background: rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.18);
+    }
+    .navTitle{
+      font-weight:1000;
+      letter-spacing:.3px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:70vw;
+    }
+    .navBadge{
+      font-size:12px;
+      font-weight:900;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.18);
+      white-space:nowrap;
+    }
+
+    .sidebar{
+      position:fixed;
+      top:0;left:0;
+      width:var(--sbw);
+      height:100vh;
+      padding:14px;
+      background: linear-gradient(180deg,#0b1220,#020617);
+      color:#e5e7eb;
+      transform: translateX(-100%);
+      transition: transform .26s ease;
+      z-index:2100;
+      box-shadow: 18px 0 50px rgba(0,0,0,.25);
+    }
+    .sidebar.open{ transform: translateX(0); }
+
+    .sbHeader{
+      margin-top:8px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 6px 14px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+    }
+    .sbLogo{
+      width:44px;height:44px;
+      border-radius:14px;
+      display:grid;place-items:center;
+      background: linear-gradient(135deg,#2563eb,#22d3ee);
+      color:#fff;
+      font-weight:1000;
+      letter-spacing:.2px;
+    }
+    .sbBrand b{display:block;font-size:14px}
+    .sbBrand small{display:block;color:rgba(229,231,235,.70);margin-top:2px}
+
+    .sbNav{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+    .sbNav a{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:12px 12px;
+      border-radius:14px;
+      text-decoration:none;
+      color:#e5e7eb;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .sbNav a:hover{background: rgba(255,255,255,.10);}
+
+    .sbIcon{
+      width:36px;height:36px;
+      border-radius:12px;
+      display:grid;place-items:center;
+      font-weight:1000;
+      color:#0f172a;
+      background:#fff;
+    }
+    .sbHint{
+      margin-top:14px;
+      font-size:12px;
+      line-height:1.5;
+      color:rgba(229,231,235,.70);
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px dashed rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+    }
+    .overlay{
+      position:fixed;
+      inset:0;
+      background: rgba(2,6,23,.45);
+      display:none;
+      z-index:2050;
+    }
+    .overlay.show{ display:block; }
   </style>
 </head>
 <body>
+
+<!-- ✅ NAVBAR (ADDED) -->
+<div class="navbar noPrint">
+  <div class="navLeft">
+    <div class="menuBtn" id="menuBtn" title="Menu">☰</div>
+    <div class="navTitle">NANOKINGFISHER</div>
+  </div>
+  <div class="navBadge">Report</div>
+</div>
+
+<!-- ✅ SIDEBAR (ADDED) -->
+<div class="sidebar noPrint" id="sidebar">
+  <div class="sbHeader">
+    <div class="sbLogo">NK</div>
+    <div class="sbBrand">
+      <b>NANOKINGFISHER</b>
+      <small>Navigation</small>
+    </div>
+  </div>
+
+  <div class="sbNav">
+    <a href="index.html">
+      <div class="sbIcon">1</div>
+      <div><b>Invoice</b><div style="font-size:12px;color:rgba(229,231,235,.75)">index.html</div></div>
+    </a>
+
+    <a href="monthly.html">
+      <div class="sbIcon">2</div>
+      <div><b>মাসিক হিসাব</b><div style="font-size:12px;color:rgba(229,231,235,.75)">monthly.html</div></div>
+    </a>
+
+    <a href="quotation.html">
+      <div class="sbIcon">3</div>
+      <div><b>Quotation</b><div style="font-size:12px;color:rgba(229,231,235,.75)">quotation.html</div></div>
+    </a>
+</div>
+
+<div class="overlay noPrint" id="overlay"></div>
 
 <div class="wrap">
 
@@ -282,7 +447,7 @@
           </div>
         </div>
 
-<br><br>
+        <br><br>
         <div class="divider"></div>
 
         <div class="totRow balance">
@@ -538,6 +703,33 @@
   el("btnSavePdf").addEventListener("click", savePDF);
 
   resetAll();
+
+  /* ✅ SIDEBAR TOGGLE (ADDED) */
+  (function(){
+    const sb = document.getElementById("sidebar");
+    const ov = document.getElementById("overlay");
+    const btn = document.getElementById("menuBtn");
+
+    function openSB(){
+      sb.classList.add("open");
+      ov.classList.add("show");
+    }
+    function closeSB(){
+      sb.classList.remove("open");
+      ov.classList.remove("show");
+    }
+    function toggle(){
+      if(sb.classList.contains("open")) closeSB();
+      else openSB();
+    }
+
+    btn.addEventListener("click", toggle);
+    ov.addEventListener("click", closeSB);
+
+    document.addEventListener("keydown", (e)=>{
+      if(e.key === "Escape") closeSB();
+    });
+  })();
 </script>
 
 </body>
