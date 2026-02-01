@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>NANOKINGFISHER - Invoice Preview</title>
+
+  <!-- PDF/Image libs -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#f3f4f6;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line: rgba(15,23,42,.12);
+      --shadow: 0 18px 60px rgba(15,23,42,.12);
+      --radius:16px;
+      --pri:#2563eb;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1100px;margin:18px auto;padding:14px}
+    .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
+
+    .topbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+    h2{margin:0;font-size:18px}
+    .btns{display:flex;gap:10px;flex-wrap:wrap}
+    button{border:none;cursor:pointer;padding:10px 14px;border-radius:12px;font-weight:900;font-size:14px}
+    .btn-pri{background:var(--pri);color:#fff}
+    .btn-ghost{background:#eef2ff;color:#1e293b}
+    .btn-ok{background:#dcfce7;color:#14532d}
+    .hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:6px}
+
+    /* ===== A4 Preview ===== */
+    .previewShell{display:flex;justify-content:center;align-items:flex-start;padding:10px;overflow:auto}
+    .a4{
+      width:210mm;
+      height:297mm;
+      background:#fff;
+      border:1px solid rgba(0,0,0,.10);
+      box-shadow:0 12px 40px rgba(0,0,0,.18);
+      padding:10mm;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      font-size:11px; /* smaller overall text */
+    }
+
+    .invHeader{display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;}
+    .brand h1{margin:0;font-size:18px;font-weight:1000;letter-spacing:.2px}
+    .brand .sub{margin-top:4px;font-size:10.5px;color:#475569;line-height:1.5}
+    .sub .row{display:block}
+
+    .divider{margin:8px 0;border-top:2px solid rgba(15,23,42,.20)}
+
+    /* Bill row: left BillTo, right Invoice meta */
+    .billRow{
+      display:grid;
+      grid-template-columns: 1fr 220px;
+      gap:10px;
+      align-items:start;
+    }
+    .billToTitle{font-size:11px;font-weight:1000;text-transform:uppercase;color:#111827;margin-bottom:6px}
+    .billBox{
+      border:1px solid rgba(0,0,0,.10);
+      border-radius:12px;
+      padding:8px;
+      color:#0f172a;
+      min-height:62px;
+    }
+    .billBox .muted{color:#64748b}
+
+    .metaBox{
+      border:1px solid rgba(0,0,0,.10);
+      border-radius:12px;
+      padding:8px;
+      font-size:10.8px;
+      color:#111827;
+    }
+    .metaRow{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
+    .metaRow b{white-space:nowrap}
+
+    table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+    th,td{padding:6px 5px;border-bottom:1px solid rgba(0,0,0,.10);vertical-align:top}
+    th{background:#f1f5f9;text-align:left;font-weight:1000}
+
+    .totals{margin-top:8px;display:flex;justify-content:flex-end}
+    .totBox{
+      width: 260px; /* smaller subtotal box */
+      border:1px solid rgba(0,0,0,.10);
+      border-radius:12px;
+      padding:8px 10px;
+      font-size:11px;
+    }
+    .totRow{display:flex;justify-content:space-between;padding:4px 0}
+    .grand{border-top:2px solid rgba(15,23,42,.20);margin-top:5px;padding-top:6px;font-weight:1000}
+    .dueBig{
+      margin-top:8px;
+      padding-top:8px;
+      border-top:2px solid rgba(15,23,42,.20);
+      display:flex;
+      justify-content:space-between;
+      font-weight:1000;
+      font-size:12px;
+    }
+
+    .notesPlain{
+      margin-top:6px;
+      font-size:11px;
+      color:#0f172a;
+      white-space:pre-wrap;
+      line-height:1.55;
+    }
+    .muted{color:#64748b}
+
+    .paymentArea{
+      margin-top:8px;
+      border-top:2px solid rgba(15,23,42,.20);
+      padding-top:8px;
+      font-size:11px;
+      color:#0f172a;
+      line-height:1.5;
+    }
+
+    @media print{
+      body{background:#fff}
+      .noPrint{display:none !important}
+      .a4{box-shadow:none;border:none}
+      .previewShell{padding:0}
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="panel noPrint">
+    <div class="topbar">
+      <h2>Invoice Preview (PDF Page)</h2>
+      <div class="btns">
+        <button class="btn-ghost" id="btnBack">← Back</button>
+        <button class="btn-ok" id="btnSaveImg">Save Image</button>
+        <button class="btn-pri" id="btnSavePdf">Save PDF</button>
+      </div>
+    </div>
+    <div class="hint">• Save Image = JPG • Save PDF = PDF</div>
+  </div>
+
+  <div class="previewShell">
+    <div class="a4" id="a4Doc">
+
+      <!-- TOP: only Business (invoice/date moved down to right of Bill To) -->
+      <div class="invHeader">
+        <div class="brand">
+          <h1 id="pBiz">NANOKINGFISHER</h1>
+          <div class="sub" id="pBizInfo"></div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Bill To left, Invoice meta right -->
+      <div class="billRow">
+        <div>
+          <div class="billToTitle" id="pBillToTitle">Bill To</div>
+          <div class="billBox" id="pBillBox"></div>
+        </div>
+
+        <div>
+          <div class="billToTitle">&nbsp;</div>
+          <div class="metaBox">
+            <div class="metaRow"><span><b>Invoice No</b></span><span id="pInvNo">-</span></div>
+            <div class="metaRow"><span><b>Date</b></span><span id="pInvDate">-</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamic table -->
+      <table id="pTable">
+        <thead id="pThead"></thead>
+        <tbody id="pTbody"></tbody>
+      </table>
+
+      <div class="totals">
+        <div class="totBox">
+          <div class="totRow"><span>Subtotal</span><b id="pSub">0</b></div>
+          <div class="totRow"><span>Discount</span><b id="pDisc">0</b></div>
+          <div class="totRow grand"><span>Grand Total</span><b id="pGrand">0</b></div>
+          <div class="totRow"><span>Paid</span><b id="pPaid">0</b></div>
+
+          <div class="dueBig">
+            <span>Total Due</span>
+            <span id="pDue">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="billToTitle">Terms / Notes</div>
+      <div class="notesPlain" id="pNotes"></div>
+
+      <div class="paymentArea">
+        <div class="billToTitle">Payment Info</div>
+        <div><b>bKash:</b> <span id="pBkash">-</span></div>
+        <div><b>Nagad:</b> <span id="pNagad">-</span></div>
+        <div><b>Bank:</b> <span id="pBank">-</span></div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const el = (id)=>document.getElementById(id);
+  const toNum = (v)=> (Number.isFinite(Number(v)) ? Number(v) : 0);
+  const fmt = (n)=> toNum(n).toLocaleString("en-IN");
+
+  function getData(){
+    try{
+      return JSON.parse(localStorage.getItem("NKF_INVOICE_DATA") || "{}");
+    }catch(e){
+      return {};
+    }
+  }
+
+  function safeText(s){ return String(s ?? "").trim(); }
+
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function buildBillBox(data){
+    const parts = [];
+    const company = safeText(data.billCompany);
+    const name = safeText(data.billName);
+
+    // Company first, then name (and if name empty, it's hidden as you asked)
+    if(company) parts.push(`<div><b>${escapeHtml(company)}</b></div>`);
+    if(name) parts.push(`<div>${escapeHtml(name)}</div>`);
+
+    const phone = safeText(data.billPhone);
+    if(phone) parts.push(`<div class="muted">Phone: ${escapeHtml(phone)}</div>`);
+
+    const addr = safeText(data.billAddr);
+    if(addr) parts.push(`<div class="muted">Address: ${escapeHtml(addr)}</div>`);
+
+    if(parts.length === 0) return `<div class="muted">-</div>`;
+    return parts.join("");
+  }
+
+  function normalizeHeadersForPDF(headers){
+    // Force: Description first, Amount last, all others middle
+    const hs = Array.isArray(headers) ? headers.slice() : [];
+    const isDesc = (h)=> (String(h.__key||"") === "description") || (String(h.title||"").trim().toLowerCase() === "description");
+    const isAmount = (h)=> (String(h.__key||"") === "amount") || (String(h.title||"").trim().toLowerCase() === "amount");
+
+    const desc = hs.find(isDesc);
+    const amount = hs.find(isAmount);
+    const mid = hs.filter(h => !isDesc(h) && !isAmount(h));
+
+    const out = [];
+    if(desc) out.push(desc);
+    else out.push({ title:"Description", lines:[""] });
+
+    out.push(...mid);
+
+    if(amount) out.push(amount);
+    else out.push({ title:"Amount", lines:[""] });
+
+    // Keep only those that have any visible content OR title exists (like your old logic)
+    return out.filter(h => (safeText(h.title) !== "" || (h.lines||[]).some(v => safeText(v) !== "")));
+  }
+
+  function buildTable(headers){
+    const thead = el("pThead");
+    const tbody = el("pTbody");
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    const activeHeaders = normalizeHeadersForPDF(headers);
+    if(activeHeaders.length === 0){
+      thead.innerHTML = `<tr><th>Details</th></tr>`;
+      tbody.innerHTML = `<tr><td>-</td></tr>`;
+      return;
+    }
+
+    let maxRows = 0;
+    activeHeaders.forEach(h => { maxRows = Math.max(maxRows, (h.lines||[]).length); });
+    if(maxRows === 0) maxRows = 1;
+
+    const trh = document.createElement("tr");
+    activeHeaders.forEach(h=>{
+      const th = document.createElement("th");
+      th.textContent = safeText(h.title) || "-";
+      trh.appendChild(th);
+    });
+    thead.appendChild(trh);
+
+    for(let r=0; r<maxRows; r++){
+      const tr = document.createElement("tr");
+      activeHeaders.forEach(h=>{
+        const td = document.createElement("td");
+        const val = (h.lines && h.lines[r]) ? String(h.lines[r]) : "";
+        td.textContent = safeText(val);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    }
+  }
+
+  function render(){
+    const data = getData();
+
+    // Business info
+    el("pBiz").textContent = (data.fixedBiz && data.fixedBiz.name) ? data.fixedBiz.name : "NANOKINGFISHER";
+    const biz = data.fixedBiz || {};
+    el("pBizInfo").innerHTML = `
+      <span class="row"><b>Address:</b> ${escapeHtml(biz.address || "MYMENSINGH MASKANDA")}</span>
+      <span class="row"><b>Phone:</b> ${escapeHtml(biz.phone || "01805003217")}</span>
+      <span class="row"><b>Email:</b> ${escapeHtml(biz.email || "nanokingfisher@gmail.com")}</span>
+    `;
+
+    // Invoice meta moved to right box
+    el("pInvNo").textContent = safeText(data.invNo) || "-";
+    el("pInvDate").textContent = safeText(data.invDate) || "-";
+
+    // Bill To fixed title
+    el("pBillToTitle").textContent = "Bill To";
+    el("pBillBox").innerHTML = buildBillBox(data);
+
+    // totals
+    const t = data.totals || {};
+    el("pSub").textContent = fmt(t.sub || 0);
+    el("pDisc").textContent = fmt(t.discount || 0);
+    el("pGrand").textContent = fmt(t.grand || 0);
+    el("pPaid").textContent = fmt(t.paid || 0);
+    el("pDue").textContent = fmt(t.due || 0);
+
+    // notes
+    const notes = safeText(data.notes);
+    el("pNotes").textContent = notes ? notes : "-";
+
+    // payment (from form)
+    const pay = data.payment || {};
+    el("pBkash").textContent = safeText(pay.bkash) || "-";
+    el("pNagad").textContent = safeText(pay.nagad) || "-";
+    el("pBank").textContent = safeText(pay.bank) || "-";
+
+    // table
+    buildTable(data.headers);
+  }
+
+  async function captureA4Canvas(){
+    const node = el("a4Doc");
+    const scale = 3; // stronger to reduce "fuzzy/broken" text
+    return await html2canvas(node, {
+      scale,
+      backgroundColor:"#ffffff",
+      useCORS:true,
+      letterRendering:true
+    });
+  }
+
+  function downloadBlob(blob, filename){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  }
+
+  function safeFileBase(){
+    const data = getData();
+    const invNo = (data.invNo || "INV").trim().replace(/[^\w-]+/g,"_");
+    return `NANOKINGFISHER_${invNo}`;
+  }
+
+  async function saveImage(){
+    render();
+    const canvas = await captureA4Canvas();
+    canvas.toBlob((blob)=>{
+      downloadBlob(blob, `${safeFileBase()}.jpg`);
+    }, "image/jpeg", 0.95);
+  }
+
+  async function savePDF(){
+    render();
+    const canvas = await captureA4Canvas();
+    // PNG keeps text crisper than JPEG
+    const imgData = canvas.toDataURL("image/png");
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF("p", "mm", "a4");
+    pdf.addImage(imgData, "PNG", 0, 0, 210, 297);
+
+    const blob = pdf.output("blob");
+    downloadBlob(blob, `${safeFileBase()}.pdf`);
+  }
+
+  document.getElementById("btnBack").addEventListener("click", ()=> history.back());
+  document.getElementById("btnSaveImg").addEventListener("click", saveImage);
+  document.getElementById("btnSavePdf").addEventListener("click", savePDF);
+
+  render();
+</script>
+
+</body>
+</html>
