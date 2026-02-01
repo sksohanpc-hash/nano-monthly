@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>NANOKINGFISHER - Invoice Builder (Form)</title>
+
+  <style>
+    :root{
+      --bg:#eef2ff;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line: rgba(15,23,42,.12);
+      --shadow: 0 18px 60px rgba(15,23,42,.12);
+      --radius:16px;
+      --pri:#2563eb;
+      --g1:#ecfeff;
+      --g2:#fff7ed;
+      --g3:#f0fdf4;
+      --g4:#fdf2f8;
+      --g5:#f1f5f9;
+
+      /* sidebar */
+      --sbw: 270px;
+      --navh: 58px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background: radial-gradient(1200px 600px at 10% 0%, #e0e7ff 0%, rgba(224,231,255,0) 60%),
+                  radial-gradient(1200px 600px at 90% 10%, #dbeafe 0%, rgba(219,234,254,0) 60%),
+                  var(--bg);
+      color:var(--text);
+    }
+
+    /* ================= NAVBAR + SIDEBAR (ADDED) ================= */
+    .navbar{
+      position:fixed;
+      top:0;left:0;right:0;
+      height:var(--navh);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:0 14px;
+      background: linear-gradient(135deg,#0f172a,#1e293b);
+      color:#fff;
+      z-index:2000;
+      box-shadow:0 14px 40px rgba(0,0,0,.22);
+    }
+    .navLeft{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+    }
+    .menuBtn{
+      width:42px;height:42px;
+      border-radius:12px;
+      display:grid;place-items:center;
+      cursor:pointer;
+      user-select:none;
+      font-size:22px;
+      background: rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.18);
+    }
+    .navTitle{
+      font-weight:1000;
+      letter-spacing:.5px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      max-width:70vw;
+     
+    }
+    .navBadge{
+      font-size:12px;
+      font-weight:900;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.18);
+      white-space:nowrap;
+    }
+
+    .sidebar{
+      position:fixed;
+      top:0;left:0;
+      width:var(--sbw);
+      height:100vh;
+      padding:14px;
+      background: linear-gradient(180deg,#0b1220,#020617);
+      color:#e5e7eb;
+      transform: translateX(-100%);
+      transition: transform .26s ease;
+      z-index:2100;
+      box-shadow: 18px 0 50px rgba(0,0,0,.25);
+    }
+    .sidebar.open{ transform: translateX(0); }
+
+    .sbHeader{
+      margin-top:8px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:8px 6px 14px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+    }
+    .sbLogo{
+      width:44px;height:44px;
+      border-radius:14px;
+      display:grid;place-items:center;
+      background: linear-gradient(135deg,#2563eb,#22d3ee);
+      color:#fff;
+      font-weight:1000;
+      letter-spacing:.2px;
+    }
+    .sbBrand b{display:block;font-size:14px}
+    .sbBrand small{display:block;color:rgba(229,231,235,.70);margin-top:2px}
+
+    .sbNav{
+      margin-top:14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .sbNav a{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:12px 12px;
+      border-radius:14px;
+      text-decoration:none;
+      color:#e5e7eb;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .sbNav a:hover{
+      background: rgba(255,255,255,.10);
+    }
+    .sbIcon{
+      width:36px;height:36px;
+      border-radius:12px;
+      display:grid;place-items:center;
+      font-weight:1000;
+      color:#0f172a;
+      background:#fff;
+    }
+    .sbHint{
+      margin-top:14px;
+      font-size:12px;
+      line-height:1.5;
+      color:rgba(229,231,235,.70);
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px dashed rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+    }
+
+    .overlay{
+      position:fixed;
+      inset:0;
+      background: rgba(2,6,23,.45);
+      display:none;
+      z-index:2050;
+    }
+    .overlay.show{ display:block; }
+
+    /* push content below navbar */
+    .page{
+      padding-top: calc(var(--navh) + 10px);
+    }
+    /* ================= END NAVBAR + SIDEBAR ================= */
+
+    .wrap{max-width:1100px;margin:18px auto;padding:14px}
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
+    }
+
+    .topbar{
+      display:flex;gap:10px;align-items:center;justify-content:space-between;
+      flex-wrap:wrap;margin-bottom:12px
+    }
+    h2{margin:0;font-size:18px}
+    .btns{display:flex;gap:10px;flex-wrap:wrap}
+    button{border:none;cursor:pointer;padding:10px 14px;border-radius:12px;font-weight:900;font-size:14px}
+    .btn-pri{background:var(--pri);color:#fff}
+    .btn-ghost{background:#eef2ff;color:#1e293b}
+    .btn-danger{background:#fee2e2;color:#7f1d1d}
+
+    .hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}
+
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field label{font-size:12px;color:var(--muted);font-weight:800}
+    .field input, .field textarea{
+      padding:10px;border:1px solid var(--line);border-radius:12px;font-size:14px;outline:none;
+      background:#fff;
+    }
+    .field textarea{min-height:110px;resize:vertical}
+    .field input:focus, .field textarea:focus{
+      border-color:rgba(37,99,235,.55);
+      box-shadow:0 0 0 3px rgba(37,99,235,.15)
+    }
+
+    .section{
+      border:1px solid rgba(0,0,0,.08);
+      border-radius:16px;
+      padding:12px;
+      background:#fff;
+    }
+    .secTitle{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      font-size:12px;font-weight:1000;letter-spacing:.4px;
+      color:#111827;margin:0 0 10px;text-transform:uppercase;
+    }
+    .tag{
+      font-size:11px;font-weight:900;
+      padding:6px 10px;border-radius:999px;border:1px solid rgba(0,0,0,.10);
+      color:#0f172a;background:#fff;
+      white-space:nowrap;
+    }
+
+    .section.g1{background:linear-gradient(180deg,var(--g1),#fff)}
+    .section.g2{background:linear-gradient(180deg,var(--g2),#fff)}
+    .section.g3{background:linear-gradient(180deg,var(--g3),#fff)}
+    .section.g4{background:linear-gradient(180deg,var(--g4),#fff)}
+    .section.g5{background:linear-gradient(180deg,var(--g5),#fff)}
+
+    .fixedInfo{
+      font-size:12px;
+      color:#0f172a;
+      line-height:1.55;
+      white-space:pre-line;
+      margin-top:6px;
+    }
+    .fixedInfo .muted{color:var(--muted);font-weight:800}
+
+    /* invoice row must be one line always */
+    .row2always{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+
+    .row2{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+    @media(min-width:900px){ .row2{grid-template-columns:1fr 1fr} }
+
+    /* ===== Header builder ===== */
+    .headersWrap{display:flex;flex-direction:column;gap:10px}
+
+    .headerCard{
+      border:1px solid rgba(0,0,0,.10);
+      border-radius:14px;
+      padding:10px;
+      background:#fff;
+    }
+    .headerTop{
+      display:grid;
+      grid-template-columns: 1fr 40px;
+      gap:8px;
+      align-items:center;
+    }
+    .headerTop input{
+      width:100%;
+      padding:10px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      font-size:14px;
+      outline:none;
+      background:#fff;
+    }
+    .headerTop input:focus{border-color:rgba(37,99,235,.55);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+    .iconBtn{
+      width:40px;height:40px;border-radius:12px;
+      display:grid;place-items:center;
+      font-weight:1000;
+      border:1px solid var(--line);
+      background:#fff;
+    }
+    .iconBtn.del{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
+
+    .lines{
+      margin-top:10px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .lineRow{
+      display:grid;
+      grid-template-columns: 1fr 40px;
+      gap:8px;
+      align-items:center;
+    }
+    .lineRow input{
+      width:100%;
+      padding:10px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      font-size:14px;
+      outline:none;
+      background:#fff;
+    }
+
+    .headerActions{
+      margin-top:10px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .summaryBox{
+      border:1px solid rgba(0,0,0,.10);
+      border-radius:14px;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-top:12px;
+      background:#fff;
+    }
+    .sumRow{display:flex;justify-content:space-between;gap:10px}
+    .sumRow b{white-space:nowrap}
+    .sumRow strong{white-space:nowrap}
+
+    .staticLine{
+      padding:10px;
+      border:1px dashed rgba(15,23,42,.20);
+      border-radius:12px;
+      background:#ffffffcc;
+      font-size:13px;
+      font-weight:900;
+      color:#111827;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== NAVBAR (ADDED) ========== -->
+<div class="navbar">
+  <div class="navLeft">
+    <div class="menuBtn" id="menuBtn" title="Menu">☰</div>
+    <div class="navTitle">Invoice</div>
+  </div>
+  <div class="navBadge">Menu</div>
+</div>
+
+<!-- ========== SIDEBAR (ADDED) ========== -->
+<div class="sidebar" id="sidebar">
+  <div class="sbHeader">
+    <div class="sbLogo">NK</div>
+    <div class="sbBrand">
+      <b>NANOKINGFISHER</b>
+      <small>Navigation</small>
+    </div>
+  </div>
+
+  <div class="sbNav">
+    <a href="index.html">
+      <div class="sbIcon">1</div>
+      <div><b>Invoice</b><div style="font-size:12px;color:rgba(229,231,235,.75)">index.html</div></div>
+    </a>
+
+    <a href="monthly.html">
+      <div class="sbIcon">2</div>
+      <div><b>মাসিক হিসাব</b><div style="font-size:12px;color:rgba(229,231,235,.75)">monthly.html</div></div>
+    </a>
+
+    <a href="quotation.html">
+      <div class="sbIcon">3</div>
+      <div><b>Quotation</b><div style="font-size:12px;color:rgba(229,231,235,.75)">quotation.html</div></div>
+    </a>
+  </div>
+
+</div>
+<div class="overlay" id="overlay"></div>
+
+<!-- ========== PAGE (your original content) ========== -->
+<div class="page">
+  <div class="wrap">
+    <div class="panel">
+
+      <div class="topbar">
+        <h2>Invoice Builder (Form)</h2>
+        <div class="btns">
+          <button class="btn-danger" id="btnReset">Reset (সব 0)</button>
+          <button class="btn-pri" id="btnPreview">Preview</button>
+        </div>
+      </div>
+
+      <!-- ===== Fixed Business Info (no input boxes) ===== -->
+      <div class="section g1">
+        <div class="secTitle">
+          <span>Business Info (Fixed)</span>
+          <span class="tag">Editable না</span>
+        </div>
+        <div style="font-weight:1000;font-size:18px;letter-spacing:.2px;">NANOKINGFISHER</div>
+        <div class="fixedInfo">
+          <span class="muted">Address:</span> MYMENSINGH MASKANDA
+          <br><span class="muted">Phone:</span> 01805003217
+          <br><span class="muted">Email:</span> nanokingfisher@gmail.com
+        </div>
+      </div>
+
+      <!-- ===== Invoice row: No (left) + Date (right) ALWAYS one line ===== -->
+      <div class="section g2" style="margin-top:12px">
+        <div class="secTitle">
+          <span>Invoice Info</span>
+          <span class="tag">No + Date (Same line)</span>
+        </div>
+
+        <div class="row2always">
+          <div class="field">
+            <label>Invoice No</label>
+            <input id="invNo" value="INV-0001" />
+          </div>
+          <div class="field">
+            <label>Invoice Date</label>
+            <input id="invDate" type="date" value="" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Customer block ===== -->
+      <div class="section g3" style="margin-top:12px">
+        <div class="secTitle">
+          <span>Customer</span>
+          <span class="tag">Bill To fixed</span>
+        </div>
+
+        <!-- Bill To fixed -->
+        <div class="field">
+          <label>Bill To</label>
+          <div class="staticLine">Bill To</div>
+        </div>
+
+        <!-- Company Name then Customer Name -->
+        <div class="row2" style="margin-top:10px">
+          <div class="field">
+            <label>Company Name (optional)</label>
+            <input id="billCompany" value="" placeholder="Company / Shop name" />
+          </div>
+          <div class="field">
+            <label>Customer Name (ফাঁকা হলে PDF এ দেখাবে না)</label>
+            <input id="billName" value="" placeholder="Customer name" />
+          </div>
+        </div>
+
+        <!-- Phone -->
+        <div class="field" style="margin-top:10px">
+          <label>Customer Phone (optional)</label>
+          <input id="billPhone" value="" placeholder="01XXXXXXXXX" />
+        </div>
+
+        <!-- Address -->
+        <div class="field" style="margin-top:10px">
+          <label>Customer Address (optional)</label>
+          <input id="billAddr" value="" placeholder="Customer address" />
+        </div>
+      </div>
+
+      <!-- ===== Headers + Lines (Description first, Amount last) ===== -->
+      <div class="section g4" style="margin-top:12px">
+        <div class="secTitle">
+          <span>Headers + Lines</span>
+          <span class="tag">Desc প্রথমে, Amount শেষে</span>
+        </div>
+
+        <div class="headersWrap" id="headersWrap"></div>
+
+        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-ghost" id="btnAddHeader">+ Add Header</button>
+        </div>
+
+        <div class="row2" style="margin-top:12px">
+          <div class="field">
+            <label>Discount (৳)</label>
+            <input id="discount" type="number" value="0" />
+          </div>
+          <div class="field">
+            <label>Paid (৳)</label>
+            <input id="paid" type="number" value="0" />
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:10px">
+          <label>Manual Subtotal (যদি Amount কলাম না থাকে)</label>
+          <input id="manualSub" type="number" value="0" />
+        </div>
+
+        <div class="summaryBox">
+          <div class="sumRow"><span>Subtotal</span> <b id="uiSub">0</b></div>
+          <div class="sumRow"><span>Discount</span> <b id="uiDisc">0</b></div>
+          <div class="sumRow"><span>Grand Total</span> <b id="uiGrand">0</b></div>
+          <div class="sumRow"><span>Paid</span> <b id="uiPaid">0</b></div>
+          <div class="sumRow"><span>Total Due</span> <strong id="uiDue">0</strong></div>
+        </div>
+
+        <div class="hint">
+          • Subtotal অটো হবে যদি “Amount/amount/টাকা/৳” হেডার থাকে। না থাকলে Manual Subtotal ব্যবহার করুন।
+        </div>
+      </div>
+
+      <!-- ===== Payment Info (editable defaults) ===== -->
+      <div class="section g5" style="margin-top:12px">
+        <div class="secTitle">
+          <span>Payment Info (Editable Default)</span>
+          <span class="tag">PDF এ দেখাবে</span>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label>bKash</label>
+            <input id="payBkash" value="01XXXXXXXXX" />
+          </div>
+          <div class="field">
+            <label>Nagad</label>
+            <input id="payNagad" value="01XXXXXXXXX" />
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:10px">
+          <label>Bank (single line)</label>
+          <input id="payBank" value="A/C Name, A/C No, Branch" />
+        </div>
+
+        <div class="hint">• এগুলো ডিফল্ট—আপনি চাইলে বদলাতে পারবেন।</div>
+      </div>
+
+      <!-- ===== Notes at very bottom (default terms, editable) ===== -->
+      <div class="section" style="margin-top:12px;background:linear-gradient(180deg,#f8fafc,#fff)">
+        <div class="secTitle">
+          <span>Terms / Notes (Bottom)</span>
+          <span class="tag">Editable</span>
+        </div>
+        <div class="field">
+          <label>Notes / Terms</label>
+          <textarea id="notes"></textarea>
+        </div>
+        <div class="hint">• ডিফল্ট টার্মস আছে—আপনি চাইলে বদলাতে পারবেন।</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ===== SIDEBAR TOGGLE (ADDED) ===== */
+  (function(){
+    const sb = document.getElementById("sidebar");
+    const ov = document.getElementById("overlay");
+    const btn = document.getElementById("menuBtn");
+
+    function toggle(){
+      sb.classList.toggle("open");
+      ov.classList.toggle("show");
+    }
+
+    btn.addEventListener("click", toggle);
+    ov.addEventListener("click", toggle);
+
+    // ESC to close
+    document.addEventListener("keydown", (e)=>{
+      if(e.key === "Escape" && sb.classList.contains("open")){
+        sb.classList.remove("open");
+        ov.classList.remove("show");
+      }
+    });
+  })();
+</script>
+
+<script>
+  const el = (id)=>document.getElementById(id);
+  const toNum = (v)=> (Number.isFinite(Number(v)) ? Number(v) : 0);
+  const fmt = (n)=> toNum(n).toLocaleString("en-IN");
+
+  const defaultTerms =
+`• Payment due on delivery/confirmation.
+• Any change request may affect time & cost.
+• Support will be provided as per agreement/package.`;
+
+  function pad2(n){ return String(n).padStart(2,"0"); }
+  function todayISO(){
+    const d = new Date();
+    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  }
+
+  // headers: [{title:"", lines:["","",...]}]
+  let headers = [];
+
+  function normalizeHeaderOrder(){
+    // Ensure Description first, Amount last, and others in between
+    const descKey = "description";
+    const amountKey = "amount";
+
+    const desc = headers.find(h => (h.__key === descKey));
+    const amount = headers.find(h => (h.__key === amountKey));
+    const middle = headers.filter(h => h.__key !== descKey && h.__key !== amountKey);
+
+    headers = [
+      desc || { __key: descKey, title: "Description", lines:[""] },
+      ...middle,
+      amount || { __key: amountKey, title: "Amount", lines:[""] }
+    ];
+  }
+
+  function headerCard(index){
+    const h = headers[index];
+
+    const card = document.createElement("div");
+    card.className = "headerCard";
+
+    const top = document.createElement("div");
+    top.className = "headerTop";
+
+    const title = document.createElement("input");
+    title.placeholder = "Header title (যেমন: Description / Qty / Rate ...)";
+    title.value = h.title || "";
+
+    const del = document.createElement("button");
+    del.className = "iconBtn del";
+    del.type = "button";
+    del.textContent = "×";
+
+    function syncTitle(){
+      headers[index].title = title.value;
+      recalcUI();
+    }
+    title.addEventListener("input", syncTitle);
+
+    del.addEventListener("click", ()=>{
+      // Prevent deleting fixed Description/Amount: just clear content instead
+      if(headers[index].__key === "description" || headers[index].__key === "amount"){
+        headers[index].lines = [""];
+        recalcUI();
+        renderHeaders();
+        return;
+      }
+      headers.splice(index, 1);
+      normalizeHeaderOrder();
+      renderHeaders();
+      recalcUI();
+    });
+
+    top.appendChild(title);
+    top.appendChild(del);
+
+    const linesWrap = document.createElement("div");
+    linesWrap.className = "lines";
+
+    const lines = headers[index].lines || [""];
+    for(let li=0; li<lines.length; li++){
+      const lr = document.createElement("div");
+      lr.className = "lineRow";
+
+      const inp = document.createElement("input");
+      inp.placeholder = `Line ${li+1}`;
+      inp.value = lines[li] || "";
+
+      const delLine = document.createElement("button");
+      delLine.className = "iconBtn del";
+      delLine.type = "button";
+      delLine.textContent = "×";
+
+      inp.addEventListener("input", ()=>{
+        headers[index].lines[li] = inp.value;
+        recalcUI();
+      });
+
+      delLine.addEventListener("click", ()=>{
+        if(headers[index].lines.length <= 1){
+          headers[index].lines[0] = "";
+        }else{
+          headers[index].lines.splice(li, 1);
+        }
+        renderHeaders();
+        recalcUI();
+      });
+
+      lr.appendChild(inp);
+      lr.appendChild(delLine);
+      linesWrap.appendChild(lr);
+    }
+
+    const actions = document.createElement("div");
+    actions.className = "headerActions";
+
+    const addLineBtn = document.createElement("button");
+    addLineBtn.className = "btn-ghost";
+    addLineBtn.type = "button";
+    addLineBtn.textContent = "+ Add Line";
+
+    addLineBtn.addEventListener("click", ()=>{
+      if(!headers[index].lines) headers[index].lines = [""];
+      headers[index].lines.push("");
+      renderHeaders();
+      recalcUI();
+    });
+
+    actions.appendChild(addLineBtn);
+
+    card.appendChild(top);
+    card.appendChild(linesWrap);
+    card.appendChild(actions);
+
+    return card;
+  }
+
+  function renderHeaders(){
+    normalizeHeaderOrder();
+    const wrap = el("headersWrap");
+    wrap.innerHTML = "";
+    headers.forEach((_, i)=> wrap.appendChild(headerCard(i)));
+  }
+
+  function findAmountHeaderIndex(){
+    // keep existing logic (title-based) but Amount is fixed key anyway
+    const keys = ["amount", "tk", "taka", "৳", "টাকা"];
+    for(let i=0;i<headers.length;i++){
+      const t = (headers[i].title || "").toLowerCase();
+      if(keys.some(k => t.includes(k))) return i;
+    }
+    // fallback to fixed key
+    const idx = headers.findIndex(h => h.__key === "amount");
+    return idx;
+  }
+
+  function calcSubtotal(){
+    const idx = findAmountHeaderIndex();
+    if(idx === -1) return toNum(el("manualSub").value);
+
+    const lines = headers[idx].lines || [];
+    let sum = 0;
+    for(const v of lines){
+      const n = Number(String(v).replace(/[, ]+/g,""));
+      if(Number.isFinite(n)) sum += n;
+    }
+    return sum;
+  }
+
+  function calc(){
+    const discount = toNum(el("discount").value);
+    const paid = toNum(el("paid").value);
+
+    const sub = calcSubtotal();
+    const grand = Math.max(0, sub - discount);
+    const due = Math.max(0, grand - paid);
+    return { sub, discount, grand, paid, due };
+  }
+
+  function recalcUI(){
+    const { sub, discount, grand, paid, due } = calc();
+    el("uiSub").textContent = fmt(sub);
+    el("uiDisc").textContent = fmt(discount);
+    el("uiGrand").textContent = fmt(grand);
+    el("uiPaid").textContent = fmt(paid);
+    el("uiDue").textContent = fmt(due);
+  }
+
+  function resetAll(){
+    el("invNo").value = "INV-0001";
+    el("invDate").value = todayISO();
+
+    el("billCompany").value = "";
+    el("billName").value = "";
+    el("billPhone").value = "";
+    el("billAddr").value = "";
+
+    el("discount").value = 0;
+    el("paid").value = 0;
+    el("manualSub").value = 0;
+
+    el("payBkash").value = "01XXXXXXXXX";
+    el("payNagad").value = "01XXXXXXXXX";
+    el("payBank").value = "A/C Name, A/C No, Branch";
+
+    el("notes").value = defaultTerms;
+
+    headers = [
+      { __key:"description", title: "Description", lines: [""] },
+      { __key:"amount", title: "Amount", lines: [""] }
+    ];
+    renderHeaders();
+    recalcUI();
+  }
+
+  function collectData(){
+    normalizeHeaderOrder();
+
+    const invNo = (el("invNo").value || "").trim() || "INV-0001";
+    const invDate = (el("invDate").value || "").trim() || "";
+
+    const billCompany = (el("billCompany").value || "").trim();
+    const billName = (el("billName").value || "").trim(); // empty => PDF hide
+    const billPhone = (el("billPhone").value || "").trim();
+    const billAddr = (el("billAddr").value || "").trim();
+
+    const notes = (el("notes").value || "").trim() || defaultTerms;
+
+    const payment = {
+      bkash: (el("payBkash").value || "").trim(),
+      nagad: (el("payNagad").value || "").trim(),
+      bank: (el("payBank").value || "").trim()
+    };
+
+    const amounts = calc();
+
+    // active headers but preserve forced order (desc ... middle ... amount)
+    const activeHeaders = headers
+      .map(h => ({
+        __key: h.__key || "",
+        title:(h.title||"").trim(),
+        lines:(h.lines||[]).map(x=>String(x ?? ""))
+      }))
+      .filter(h => h.title !== "" || h.lines.some(v => String(v).trim() !== ""));
+
+    return {
+      fixedBiz: {
+        name: "NANOKINGFISHER",
+        address: "MYMENSINGH MASKANDA",
+        phone: "01805003217",
+        email: "nanokingfisher@gmail.com"
+      },
+      invNo,
+      invDate,
+      billToText: "Bill To",     // fixed
+      billCompany,
+      billName,
+      billPhone,
+      billAddr,
+      notes,
+      payment,
+      headers: activeHeaders,
+      totals: amounts
+    };
+  }
+
+  // events
+  el("btnAddHeader").addEventListener("click", ()=>{
+    normalizeHeaderOrder();
+    // Insert always between Description and Amount (before amount)
+    const amountIdx = headers.findIndex(h => h.__key === "amount");
+    const insertAt = (amountIdx === -1) ? headers.length : amountIdx;
+    headers.splice(insertAt, 0, { __key:"", title:"", lines:[""] });
+    renderHeaders();
+    recalcUI();
+  });
+
+  ["discount","paid","manualSub"].forEach(id => el(id).addEventListener("input", recalcUI));
+
+  el("btnReset").addEventListener("click", resetAll);
+
+  el("btnPreview").addEventListener("click", ()=>{
+    recalcUI();
+    const data = collectData();
+    localStorage.setItem("NKF_INVOICE_DATA", JSON.stringify(data));
+    window.open("pdf.html", "_blank");
+  });
+
+  // init
+  resetAll();
+</script>
+
+</body>
+</html>
