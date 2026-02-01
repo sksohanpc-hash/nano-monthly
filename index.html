@@ -408,7 +408,8 @@
 
     el("pSalary").textContent = `${fmt(salary)} ৳`;
     el("pIncome").textContent = `${fmt(income)} ৳`;
-    el("pNet").textContent = `${fmt(net)} ৳`;
+    const netEl = el("pNet");
+if(netEl) netEl.textContent = `${fmt(net)} ৳`;
   }
 
   async function savePDF(){
