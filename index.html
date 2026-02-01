@@ -3,477 +3,540 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NANOKINGFISHER - A4 হিসাব</title>
+  <title>NANOKINGFISHER - Dynamic Report</title>
 
-  <!-- jsPDF + html2canvas (PDF বানাতে) -->
+  <!-- PDF/Image libs -->
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <style>
     :root{
-      --bg:#f2f4f8;
-      --card:#fff;
-      --text:#0f172a;
-      --muted:#64748b;
-      --line: rgba(15,23,42,.12);
-      --radius:16px;
-      --shadow: 0 18px 60px rgba(15,23,42,.12);
-      --pri:#2563eb;
+      --bg:#f2f4f8; --card:#fff; --text:#0f172a; --muted:#64748b;
+      --line: rgba(15,23,42,.12); --radius:16px; --shadow: 0 18px 60px rgba(15,23,42,.12);
+      --pri:#2563eb; --danger:#ef4444; --ok:#16a34a;
     }
-
     *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1050px;margin:18px auto;padding:14px}
+    .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
 
-    .wrap{
-      max-width: 1100px;
-      margin: 18px auto;
-      padding: 14px;
-      display: grid;
-      gap: 14px;
-      grid-template-columns: 1fr;
+    .topbar{
+      display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+      margin-bottom:12px;
     }
-
-    @media(min-width: 980px){
-      .wrap{ grid-template-columns: 420px 1fr; }
-    }
-
-    .panel{
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 14px;
-    }
-
-    h2{
-      margin: 0 0 10px 0;
-      font-size: 18px;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .field{
-      display:flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .field label{
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .field input{
-      padding: 10px 10px;
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      font-size: 14px;
-      outline: none;
-    }
-    .field input:focus{
-      border-color: rgba(37,99,235,.55);
-      box-shadow: 0 0 0 3px rgba(37,99,235,.15);
-    }
-
-    .full{ grid-column: 1 / -1; }
-
-    .btns{
-      display:flex;
-      gap:10px;
-      margin-top: 12px;
-      flex-wrap: wrap;
-    }
+    h2{margin:0;font-size:18px}
+    .btns{display:flex;gap:10px;flex-wrap:wrap}
     button{
-      border: none;
-      cursor: pointer;
-      padding: 10px 14px;
-      border-radius: 12px;
-      font-weight: 700;
-      font-size: 14px;
+      border:none;cursor:pointer;padding:10px 14px;border-radius:12px;font-weight:900;font-size:14px;
     }
-    .btn-pri{ background: var(--pri); color:#fff; }
-    .btn-ghost{ background:#eef2ff; color:#1e293b; }
-    .btn-danger{ background:#fee2e2; color:#7f1d1d; }
+    .btn-pri{background:var(--pri);color:#fff}
+    .btn-ghost{background:#eef2ff;color:#1e293b}
+    .btn-danger{background:#fee2e2;color:#7f1d1d}
+    .btn-ok{background:#dcfce7;color:#14532d}
+    .hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}
 
-    /* ===== A4 Preview ===== */
+    .grid2{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:900px){ .grid2{grid-template-columns:1fr 1fr} }
+
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field label{font-size:12px;color:var(--muted)}
+    .field input{
+      padding:10px;border:1px solid var(--line);border-radius:12px;font-size:14px;outline:none
+    }
+    .field input:focus{border-color:rgba(37,99,235,.55);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+
+    .sectionTitle{
+      font-size:12px; font-weight:1000; letter-spacing:.4px; color:#111827;
+      margin:8px 0 10px;
+      text-transform: uppercase;
+    }
+
+    .rows{display:flex;flex-direction:column;gap:8px}
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 140px 40px;
+      gap:8px;
+      align-items:center;
+    }
+    .row input{
+      width:100%;
+      padding:10px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      font-size:14px;
+      outline:none;
+    }
+    .row input:focus{border-color:rgba(37,99,235,.55);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+    .iconBtn{
+      width:40px;height:40px;border-radius:12px;
+      display:grid;place-items:center;
+      font-weight:1000;
+      border:1px solid var(--line);
+      background:#fff;
+    }
+    .iconBtn.del{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
+
+    .summaryBox{
+      border:1px solid rgba(0,0,0,.08);
+      border-radius:14px;
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-top:10px;
+    }
+    .sumRow{display:flex;justify-content:space-between;gap:10px}
+    .sumRow b{white-space:nowrap}
+    .sumRow .pos{color:var(--ok)}
+    .sumRow .neg{color:var(--danger)}
+
+    /* ====== Screen routing ====== */
+    .screen{display:none}
+    .screen.active{display:block}
+
+    /* ====== A4 Preview ====== */
     .previewShell{
       display:flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 10px;
+      justify-content:center;
+      align-items:flex-start;
+      padding:10px;
       overflow:auto;
     }
 
-    .a4 {
-      width: 210mm;
-      min-height: 297mm;
-      background: #fff;
-      border: 1px solid rgba(0,0,0,.08);
-      box-shadow: 0 12px 40px rgba(0,0,0,.18);
-      padding: 18mm;
+    /* ✅ side space কমাতে padding কমানো হলো */
+    .a4{
+      width:210mm;
+      min-height:297mm;
+      background:#fff;
+      border:1px solid rgba(0,0,0,.08);
+      box-shadow:0 12px 40px rgba(0,0,0,.18);
+      padding:10mm; /* আগে 16mm ছিল */
     }
 
-    /* PDF/Print-friendly */
-    .a4 h1{
-      margin:0;
-      text-align:center;
-      font-size: 26px;
-      letter-spacing: .5px;
-    }
-    .sub{
-      text-align:center;
-      margin-top:6px;
-      color:#475569;
-      font-size: 13px;
+    .title{text-align:center}
+    .title h1{margin:0;font-size:20px;font-weight:1000}
+    .title .sub{margin-top:4px;font-size:12px;color:#475569}
+    .title .date{margin-top:8px;font-size:12px;color:#111827}
+    .divider{margin:10px 0;border-top:2px solid rgba(15,23,42,.20)}
+
+    /* ✅ Income & Expense এর মাঝের gap বাড়ানো হলো */
+    .cols{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:28px; /* আগে 18px ছিল */
+      margin-top:6px
     }
 
-    .meta{
-      display:flex;
-      justify-content: space-between;
-      margin-top: 18px;
-      font-size: 13px;
-      color:#0f172a;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .meta b{ color:#111827; }
+    .boxTitle{font-size:12px;font-weight:1000;text-transform:uppercase;color:#111827;margin-bottom:8px}
 
-    table{
-      width:100%;
-      border-collapse: collapse;
-      margin-top: 16px;
-      font-size: 14px;
-    }
-    th, td{
-      padding: 10px 8px;
-      border-bottom: 1px solid rgba(0,0,0,.10);
-    }
-    th{
-      background:#f1f5f9;
-      text-align:left;
-      font-weight: 800;
-    }
-    td.amount, th.amount{
-      text-align:right;
-      white-space: nowrap;
-    }
-    .totalRow td{
-      border-top: 2px solid #111827;
-      border-bottom: none;
-      font-weight: 900;
-      font-size: 15px;
-      padding-top: 12px;
-    }
+    table{width:100%;border-collapse:collapse;font-size:12.5px}
+    th,td{padding:7px 6px;border-bottom:1px solid rgba(0,0,0,.10)}
+    th{background:#f1f5f9;text-align:left;font-weight:1000}
+    .amt{text-align:right;white-space:nowrap}
 
-    .summary{
-      margin-top: 18px;
-      display:flex;
-      flex-direction: column;
-      gap: 8px;
-      font-size: 15px;
-    }
-    .sumRow{
-      display:flex;
-      justify-content: space-between;
-      border: 1px solid rgba(0,0,0,.08);
-      border-radius: 12px;
-      padding: 10px 12px;
-    }
-    .sumRow strong{ white-space: nowrap; }
+    .totLine{margin-top:10px;border-top:2px solid rgba(15,23,42,.20);padding-top:8px;font-size:12.5px}
+    .totRow{display:flex;justify-content:space-between;padding:6px 0}
+    .balance{font-weight:1000;font-size:13px}
 
-    .footer{
-      margin-top: 28px;
-      display:flex;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .sign{
-      width: 210px;
-      border-top: 1px solid #111827;
-      padding-top: 6px;
-      text-align: center;
-      font-size: 12px;
-      color:#334155;
-    }
-
-    /* Hide preview panel on small screens? (না, দেখাবোই) */
-
-    /* Print only A4 page */
     @media print{
-      body{ background:#fff; }
-      .panel.formPanel, .btns, .wrap{ display:block; }
-      .formPanel{ display:none !important; }
-      .previewPanel{
-        box-shadow:none;
-        border:none;
-      }
-      .previewShell{ padding:0; }
-      .a4{
-        box-shadow:none;
-        border:none;
-        margin:0;
-      }
+      body{background:#fff}
+      .noPrint{display:none !important}
+      .a4{box-shadow:none;border:none}
+      .previewShell{padding:0}
     }
   </style>
 </head>
 <body>
 
-  <div class="wrap">
+<div class="wrap">
 
-    <!-- FORM -->
-    <div class="panel formPanel">
-      <h2>ডাটা দিন (Form)</h2>
+  <!-- ================= FORM SCREEN ================= -->
+  <div class="screen active" id="screenForm">
+    <div class="panel">
 
-      <div class="grid">
-        <div class="field full">
-          <label>Office Name</label>
+      <div class="topbar">
+        <h2>Dynamic Report Form</h2>
+        <div class="btns">
+          <button class="btn-danger" id="btnReset">Reset (সব 0)</button>
+          <button class="btn-pri" id="btnGoPreview">Preview</button>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label>Office / Company Name</label>
           <input id="officeName" value="NANOKINGFISHER" />
         </div>
 
         <div class="field">
-          <label>Date From (dd-mm-yyyy)</label>
+          <label>Date Range (Format: dd-mm-yyyy)</label>
           <input id="dateFrom" value="01-01-2026" />
-        </div>
-
-        <div class="field">
-          <label>Date To (dd-mm-yyyy)</label>
+          <div style="height:6px"></div>
           <input id="dateTo" value="31-01-2026" />
         </div>
-
-        <div class="field full">
-          <label>Expense Items (৳)</label>
-        </div>
-
-        <div class="field">
-          <label>এক্সোসেরিজ</label>
-          <input id="exp1" type="number" value="15700" />
-        </div>
-        <div class="field">
-          <label>সার্ভিস কস্ট</label>
-          <input id="exp2" type="number" value="5650" />
-        </div>
-        <div class="field">
-          <label>খাবার বিল</label>
-          <input id="exp3" type="number" value="2030" />
-        </div>
-        <div class="field">
-          <label>বাজার + সদাই</label>
-          <input id="exp4" type="number" value="10550" />
-        </div>
-        <div class="field">
-          <label>মোবাইল রিচার্জ</label>
-          <input id="exp5" type="number" value="330" />
-        </div>
-        <div class="field">
-          <label>যাতায়াত খরচ</label>
-          <input id="exp6" type="number" value="480" />
-        </div>
-
-        <div class="field">
-          <label>সেলারি বাবদ</label>
-          <input id="salary" type="number" value="123500" />
-        </div>
-        <div class="field">
-          <label>ইনকাম</label>
-          <input id="income" type="number" value="49100" />
-        </div>
       </div>
 
-      <div class="btns">
-        <button class="btn-pri" id="btnPreview">Preview (A4)</button>
-        <button class="btn-ghost" id="btnSave">Save PDF</button>
-        <button class="btn-danger" id="btnReset">Reset</button>
-      </div>
-
-      <div style="margin-top:10px;font-size:12px;color:#64748b;line-height:1.5">
-        টিপস: সংখ্যাগুলো বদলালে আবার <b>Preview</b> ক্লিক করুন। <b>Save PDF</b দিলে PDF ডাউনলোড হবে।
-      </div>
-    </div>
-
-    <!-- PREVIEW -->
-    <div class="panel previewPanel">
-      <h2>Preview (A4)</h2>
-      <div class="previewShell">
-        <div class="a4" id="a4Doc">
-          <h1 id="pOffice">NANOKINGFISHER</h1>
-          <div class="sub">Office Expense & Income Statement</div>
-
-          <div class="meta">
-            <div><b>Date:</b> <span id="pDateRange">01-01-2026 to 31-01-2026</span></div>
-            <div><b>Currency:</b> ৳ BDT</div>
+      <div class="grid2" style="margin-top:10px">
+        <!-- Income -->
+        <div>
+          <div class="sectionTitle">Income (Project name + amount)</div>
+          <div class="rows" id="incomeRows"></div>
+          <div style="margin-top:10px">
+            <button class="btn-ghost" id="btnAddIncome">+ Add Income</button>
           </div>
 
-          <table>
-            <thead>
-              <tr>
-                <th>খরচের বিবরণ</th>
-                <th class="amount">টাকা (৳)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr><td>এক্সোসেরিজ</td><td class="amount" id="pExp1">15,700</td></tr>
-              <tr><td>সার্ভিস কস্ট</td><td class="amount" id="pExp2">5,650</td></tr>
-              <tr><td>খাবার বিল</td><td class="amount" id="pExp3">2,030</td></tr>
-              <tr><td>বাজার + সদাই</td><td class="amount" id="pExp4">10,550</td></tr>
-              <tr><td>মোবাইল রিচার্জ</td><td class="amount" id="pExp5">330</td></tr>
-              <tr><td>যাতায়াত খরচ</td><td class="amount" id="pExp6">480</td></tr>
+          <div class="summaryBox">
+            <div class="sumRow"><span>Total Income</span> <b id="uiTotalIncome">0</b></div>
+          </div>
+        </div>
 
-              <tr class="totalRow">
-                <td>মোট খরচ</td>
-                <td class="amount" id="pTotal">34,740</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <div class="summary">
-            <div class="sumRow">
-              <span>সেলারি বাবদ</span>
-              <strong id="pSalary">1,23,500 ৳</strong>
-            </div>
-
-            <div class="sumRow">
-              <span>ইনকাম</span>
-              <strong id="pIncome">49,100 ৳</strong>
-            </div>
-
-            <!--div class="sumRow" style="font-weight:900">
-              <span>নেট (ইনকাম - মোট খরচ)</span>
-              <strong id="pNet">14,360 ৳</strong>
-            </div>
-          </div-->
-          
-<br><br><br>
-          <div class="footer">
-            <div class="sign">Prepared By</div>
-            <div class="sign">Authorized Signature</div>
+        <!-- Expense -->
+        <div>
+          <div class="sectionTitle">Expense</div>
+          <div class="rows" id="expenseRows"></div>
+          <div style="margin-top:10px">
+            <button class="btn-ghost" id="btnAddExpense">+ Add Expense</button>
           </div>
 
+          <div class="summaryBox">
+            <div class="sumRow"><span>Total Expense</span> <b id="uiTotalExpense">0</b></div>
+            <div class="sumRow">
+              <span>Balance (Income - Expense)</span>
+              <b id="uiBalance" class="">0</b>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
+      <div class="hint">
+        • Income/Expense লাইনে নাম লিখুন + amount দিন।<br>
+        • + Add দিয়ে যত খুশি লাইন যোগ করুন।<br>
+        • Preview চাপলে আলাদা পেজে রিপোর্ট দেখাবে, সেখান থেকে PDF/IMG সেভ করবেন।
+      </div>
+
+    </div>
   </div>
 
+  <!-- ================= PREVIEW SCREEN ================= -->
+  <div class="screen" id="screenPreview">
+    <div class="panel noPrint">
+      <div class="topbar">
+        <h2>Preview</h2>
+        <div class="btns">
+          <button class="btn-ghost" id="btnBack">← Back</button>
+          <button class="btn-ok" id="btnSaveImg">Save Image</button>
+          <button class="btn-pri" id="btnSavePdf">Save PDF</button>
+        </div>
+      </div>
+      <div class="hint">
+        • Save Image দিলে JPG ডাউনলোড হবে। • Save PDF দিলে PDF ডাউনলোড হবে।
+      </div>
+    </div>
+
+    <div class="previewShell">
+      <div class="a4" id="a4Doc">
+
+        <div class="title">
+          <h1 id="pOffice">NANOKINGFISHER</h1>
+          <div class="sub">Custom Report</div>
+          <div class="date"><b>Date:</b> <span id="pDateRange">01-01-2026 to 31-01-2026</span></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="cols">
+          <!-- Income -->
+          <div>
+            <div class="boxTitle">Income Description</div>
+            <table>
+              <thead>
+              <tr><th>Description</th><th class="amt">Amount</th></tr>
+              </thead>
+              <tbody id="pIncomeBody"></tbody>
+            </table>
+
+            <div class="totLine">
+              <div class="totRow">
+                <span><b>Total Income</b></span>
+                <strong id="pTotalIncome">0</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Expense -->
+          <div>
+            <div class="boxTitle">Expense Description</div>
+            <table>
+              <thead>
+              <tr><th>Description</th><th class="amt">Amount</th></tr>
+              </thead>
+              <tbody id="pExpenseBody"></tbody>
+            </table>
+
+            <div class="totLine">
+              <div class="totRow">
+                <span><b>Total Expense</b></span>
+                <strong id="pTotalExpense">0</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="totRow balance">
+          <span>Today Balance (Income - Expense)</span>
+          <strong id="pBalance">0</strong>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
 <script>
-  // Helpers
   const el = (id)=>document.getElementById(id);
 
   function toNum(v){
     const n = Number(v);
     return Number.isFinite(n) ? n : 0;
   }
-
   function fmt(n){
-    // 123500 => "1,23,500" (Bangladesh style grouping)
-    // Use en-IN for 12,34,567 style which matches BD commonly.
     return toNum(n).toLocaleString("en-IN");
   }
 
-  function refreshPreview(){
+  let incomeItems = [];
+  let expenseItems = [];
+
+  function makeRow({type, index, name="", amount=0}){
+    const row = document.createElement("div");
+    row.className = "row";
+
+    const nameInput = document.createElement("input");
+    nameInput.placeholder = type === "income" ? "Project / Income name" : "Expense name";
+    nameInput.value = name;
+
+    const amtInput = document.createElement("input");
+    amtInput.type = "number";
+    amtInput.placeholder = "0";
+    amtInput.value = amount;
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "iconBtn del";
+    delBtn.type = "button";
+    delBtn.textContent = "×";
+
+    function sync(){
+      const n = nameInput.value;
+      const a = toNum(amtInput.value);
+      if(type === "income"){
+        incomeItems[index] = { name: n, amount: a };
+      }else{
+        expenseItems[index] = { name: n, amount: a };
+      }
+      recalcUI();
+    }
+
+    nameInput.addEventListener("input", sync);
+    amtInput.addEventListener("input", sync);
+
+    delBtn.addEventListener("click", ()=>{
+      if(type === "income"){
+        incomeItems.splice(index, 1);
+        renderIncomeRows();
+      }else{
+        expenseItems.splice(index, 1);
+        renderExpenseRows();
+      }
+      recalcUI();
+    });
+
+    row.appendChild(nameInput);
+    row.appendChild(amtInput);
+    row.appendChild(delBtn);
+    return row;
+  }
+
+  function renderIncomeRows(){
+    const wrap = el("incomeRows");
+    wrap.innerHTML = "";
+    incomeItems.forEach((it, i)=>{
+      wrap.appendChild(makeRow({type:"income", index:i, name: it.name, amount: it.amount}));
+    });
+    if(incomeItems.length === 0){
+      incomeItems.push({name:"", amount:0});
+      renderIncomeRows();
+    }
+  }
+
+  function renderExpenseRows(){
+    const wrap = el("expenseRows");
+    wrap.innerHTML = "";
+    expenseItems.forEach((it, i)=>{
+      wrap.appendChild(makeRow({type:"expense", index:i, name: it.name, amount: it.amount}));
+    });
+    if(expenseItems.length === 0){
+      expenseItems.push({name:"", amount:0});
+      renderExpenseRows();
+    }
+  }
+
+  function totals(){
+    const totalIncome = incomeItems.reduce((s,x)=> s + toNum(x.amount), 0);
+    const totalExpense = expenseItems.reduce((s,x)=> s + toNum(x.amount), 0);
+    const balance = totalIncome - totalExpense;
+    return { totalIncome, totalExpense, balance };
+  }
+
+  function recalcUI(){
+    const { totalIncome, totalExpense, balance } = totals();
+    el("uiTotalIncome").textContent = fmt(totalIncome);
+    el("uiTotalExpense").textContent = fmt(totalExpense);
+    el("uiBalance").textContent = fmt(balance);
+    el("uiBalance").className = balance < 0 ? "neg" : "pos";
+  }
+
+  function buildPreviewTables(){
     const office = (el("officeName").value || "").trim() || "NANOKINGFISHER";
     const df = (el("dateFrom").value || "").trim() || "01-01-2026";
     const dt = (el("dateTo").value || "").trim() || "31-01-2026";
 
-    const exp1 = toNum(el("exp1").value);
-    const exp2 = toNum(el("exp2").value);
-    const exp3 = toNum(el("exp3").value);
-    const exp4 = toNum(el("exp4").value);
-    const exp5 = toNum(el("exp5").value);
-    const exp6 = toNum(el("exp6").value);
-
-    const total = exp1+exp2+exp3+exp4+exp5+exp6;
-
-    const salary = toNum(el("salary").value);
-    const income = toNum(el("income").value);
-    const net = income - total;
+    const { totalIncome, totalExpense, balance } = totals();
 
     el("pOffice").textContent = office;
     el("pDateRange").textContent = `${df} to ${dt}`;
+    el("pTotalIncome").textContent = fmt(totalIncome);
+    el("pTotalExpense").textContent = fmt(totalExpense);
+    el("pBalance").textContent = fmt(balance);
 
-    el("pExp1").textContent = fmt(exp1);
-    el("pExp2").textContent = fmt(exp2);
-    el("pExp3").textContent = fmt(exp3);
-    el("pExp4").textContent = fmt(exp4);
-    el("pExp5").textContent = fmt(exp5);
-    el("pExp6").textContent = fmt(exp6);
+    const iBody = el("pIncomeBody");
+    iBody.innerHTML = "";
+    const filteredIncome = incomeItems.filter(x => (x.name || "").trim() !== "" || toNum(x.amount) !== 0);
+    if(filteredIncome.length === 0){
+      iBody.innerHTML = `<tr><td>-</td><td class="amt">0</td></tr>`;
+    }else{
+      filteredIncome.forEach(x=>{
+        const tr = document.createElement("tr");
+        const td1 = document.createElement("td");
+        td1.textContent = (x.name || "").trim() || "Income";
+        const td2 = document.createElement("td");
+        td2.className = "amt";
+        td2.textContent = fmt(x.amount);
+        tr.appendChild(td1); tr.appendChild(td2);
+        iBody.appendChild(tr);
+      });
+    }
 
-    el("pTotal").textContent = fmt(total);
-
-    el("pSalary").textContent = `${fmt(salary)} ৳`;
-    el("pIncome").textContent = `${fmt(income)} ৳`;
-    const netEl = el("pNet");
-if(netEl) netEl.textContent = `${fmt(net)} ৳`;
+    const eBody = el("pExpenseBody");
+    eBody.innerHTML = "";
+    const filteredExp = expenseItems.filter(x => (x.name || "").trim() !== "" || toNum(x.amount) !== 0);
+    if(filteredExp.length === 0){
+      eBody.innerHTML = `<tr><td>-</td><td class="amt">0</td></tr>`;
+    }else{
+      filteredExp.forEach(x=>{
+        const tr = document.createElement("tr");
+        const td1 = document.createElement("td");
+        td1.textContent = (x.name || "").trim() || "Expense";
+        const td2 = document.createElement("td");
+        td2.className = "amt";
+        td2.textContent = fmt(x.amount);
+        tr.appendChild(td1); tr.appendChild(td2);
+        eBody.appendChild(tr);
+      });
+    }
   }
 
-  async function savePDF(){
-    // Ensure preview is up-to-date
-    refreshPreview();
+  function showScreen(which){
+    el("screenForm").classList.remove("active");
+    el("screenPreview").classList.remove("active");
+    el(which).classList.add("active");
+    window.scrollTo(0,0);
+  }
 
+  async function captureA4Canvas(){
     const node = el("a4Doc");
-
-    // High quality capture
     const scale = Math.min(3, window.devicePixelRatio || 2);
+    return await html2canvas(node, { scale, backgroundColor:"#ffffff", useCORS:true });
+  }
 
-    const canvas = await html2canvas(node, {
-      scale,
-      backgroundColor: "#ffffff",
-      useCORS: true
-    });
+  function downloadBlob(blob, filename){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  }
 
-    const imgData = canvas.toDataURL("image/jpeg", 0.95);
-
-    // A4 in mm
-    const pdf = new window.jspdf.jsPDF("p", "mm", "a4");
-    const pageW = 210;
-    const pageH = 297;
-
-    // Fit image to A4 exactly
-    pdf.addImage(imgData, "JPEG", 0, 0, pageW, pageH);
-
+  function safeFileBase(){
     const office = (el("officeName").value || "NANOKINGFISHER").trim().replace(/\s+/g,"_");
     const df = (el("dateFrom").value || "01-01-2026").trim();
     const dt = (el("dateTo").value || "31-01-2026").trim();
-    const fileName = `${office}_${df}_to_${dt}.pdf`;
-
-    pdf.save(fileName);
+    return `${office}_${df}_to_${dt}`;
   }
 
-  function resetForm(){
+  async function saveImage(){
+    buildPreviewTables();
+    const canvas = await captureA4Canvas();
+    canvas.toBlob((blob)=>{
+      downloadBlob(blob, `${safeFileBase()}.jpg`);
+    }, "image/jpeg", 0.95);
+  }
+
+  async function savePDF(){
+    buildPreviewTables();
+    const canvas = await captureA4Canvas();
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF("p", "mm", "a4");
+    pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
+
+    const blob = pdf.output("blob");
+    downloadBlob(blob, `${safeFileBase()}.pdf`);
+  }
+
+  function resetAll(){
     el("officeName").value = "NANOKINGFISHER";
     el("dateFrom").value = "01-01-2026";
     el("dateTo").value = "31-01-2026";
 
-    el("exp1").value = 15700;
-    el("exp2").value = 5650;
-    el("exp3").value = 2030;
-    el("exp4").value = 10550;
-    el("exp5").value = 330;
-    el("exp6").value = 480;
+    incomeItems = [{name:"", amount:0}];
+    expenseItems = [{name:"", amount:0}];
 
-    el("salary").value = 123500;
-    el("income").value = 49100;
-
-    refreshPreview();
+    renderIncomeRows();
+    renderExpenseRows();
+    recalcUI();
   }
 
-  // Events
-  el("btnPreview").addEventListener("click", refreshPreview);
-  el("btnSave").addEventListener("click", savePDF);
-  el("btnReset").addEventListener("click", resetForm);
+  el("btnAddIncome").addEventListener("click", ()=>{
+    incomeItems.push({name:"", amount:0});
+    renderIncomeRows();
+    recalcUI();
+  });
 
-  // Auto update preview when user types (nice UX)
-  ["officeName","dateFrom","dateTo","exp1","exp2","exp3","exp4","exp5","exp6","salary","income"]
-    .forEach(id => el(id).addEventListener("input", refreshPreview));
+  el("btnAddExpense").addEventListener("click", ()=>{
+    expenseItems.push({name:"", amount:0});
+    renderExpenseRows();
+    recalcUI();
+  });
 
-  // First load
-  refreshPreview();
+  el("btnReset").addEventListener("click", resetAll);
+
+  el("btnGoPreview").addEventListener("click", ()=>{
+    recalcUI();
+    buildPreviewTables();
+    showScreen("screenPreview");
+  });
+
+  el("btnBack").addEventListener("click", ()=> showScreen("screenForm"));
+  el("btnSaveImg").addEventListener("click", saveImage);
+  el("btnSavePdf").addEventListener("click", savePDF);
+
+  resetAll();
 </script>
 
 </body>
