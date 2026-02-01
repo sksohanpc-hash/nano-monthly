@@ -36,17 +36,19 @@
 
     /* ===== A4 Preview ===== */
     .previewShell{display:flex;justify-content:center;align-items:flex-start;padding:10px;overflow:auto}
+
+    /* ✅ IMPORTANT: Use fixed PX size to avoid blur/scale issues (A4 @96dpi ~ 794x1123) */
     .a4{
-      width:210mm;
-      height:297mm;
+      width:794px;
+      height:1123px;
       background:#fff;
       border:1px solid rgba(0,0,0,.10);
       box-shadow:0 12px 40px rgba(0,0,0,.18);
-      padding:10mm;
+      padding:38px; /* ~10mm */
       display:flex;
       flex-direction:column;
       overflow:hidden;
-      font-size:11px; /* smaller overall text */
+      font-size:11px;
     }
 
     .invHeader{display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;}
@@ -59,9 +61,9 @@
     /* Bill row: left BillTo, right Invoice meta */
     .billRow{
       display:grid;
-      grid-template-columns: 1fr 220px;
+      grid-template-columns: 1fr 240px;
       gap:10px;
-      align-items:start;
+      align-items:stretch; /* ✅ equal height columns */
     }
     .billToTitle{font-size:11px;font-weight:1000;text-transform:uppercase;color:#111827;margin-bottom:6px}
     .billBox{
@@ -70,6 +72,7 @@
       padding:8px;
       color:#0f172a;
       min-height:62px;
+      height:100%;
     }
     .billBox .muted{color:#64748b}
 
@@ -79,17 +82,43 @@
       padding:8px;
       font-size:10.8px;
       color:#111827;
+      height:100%; /* ✅ equal with Bill box */
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-start;
     }
     .metaRow{display:flex;justify-content:space-between;gap:10px;padding:2px 0}
     .metaRow b{white-space:nowrap}
 
-    table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
-    th,td{padding:6px 5px;border-bottom:1px solid rgba(0,0,0,.10);vertical-align:top}
-    th{background:#f1f5f9;text-align:left;font-weight:1000}
+    table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;table-layout:fixed}
 
+    /* ✅ row height fixed like one text line */
+    th,td{
+      padding:6px 5px;
+      border-bottom:1px solid rgba(0,0,0,.10);
+      vertical-align:top;
+      word-wrap:break-word;
+
+      line-height:1.4;
+      height:22px;        /* এক লাইনের সমান */
+      min-height:22px;
+    }
+
+    th{background:#f1f5f9;font-weight:1000;text-align:center} /* ✅ header centered */
+
+    /* ✅ body alignment rules */
+    td.isText{ text-align:left; }
+    td.isNum{ text-align:right; font-variant-numeric: tabular-nums; }
+
+    /* ✅ if any td ends up truly empty, keep height */
+    td:empty::before{
+      content:"\00a0";
+    }
+
+    /* totals box aligned to Amount column, smaller */
     .totals{margin-top:8px;display:flex;justify-content:flex-end}
     .totBox{
-      width: 260px; /* smaller subtotal box */
+      width: 220px; /* ✅ smaller */
       border:1px solid rgba(0,0,0,.10);
       border-radius:12px;
       padding:8px 10px;
@@ -114,7 +143,6 @@
       white-space:pre-wrap;
       line-height:1.55;
     }
-    .muted{color:#64748b}
 
     .paymentArea{
       margin-top:8px;
@@ -152,7 +180,6 @@
   <div class="previewShell">
     <div class="a4" id="a4Doc">
 
-      <!-- TOP: only Business (invoice/date moved down to right of Bill To) -->
       <div class="invHeader">
         <div class="brand">
           <h1 id="pBiz">NANOKINGFISHER</h1>
@@ -162,14 +189,13 @@
 
       <div class="divider"></div>
 
-      <!-- Bill To left, Invoice meta right -->
       <div class="billRow">
-        <div>
+        <div style="display:flex;flex-direction:column">
           <div class="billToTitle" id="pBillToTitle">Bill To</div>
           <div class="billBox" id="pBillBox"></div>
         </div>
 
-        <div>
+        <div style="display:flex;flex-direction:column">
           <div class="billToTitle">&nbsp;</div>
           <div class="metaBox">
             <div class="metaRow"><span><b>Invoice No</b></span><span id="pInvNo">-</span></div>
@@ -178,8 +204,8 @@
         </div>
       </div>
 
-      <!-- Dynamic table -->
       <table id="pTable">
+        <colgroup id="pColg"></colgroup>
         <thead id="pThead"></thead>
         <tbody id="pTbody"></tbody>
       </table>
@@ -205,9 +231,12 @@
 
       <div class="paymentArea">
         <div class="billToTitle">Payment Info</div>
-        <div><b>bKash:</b> <span id="pBkash">-</span></div>
-        <div><b>Nagad:</b> <span id="pNagad">-</span></div>
-        <div><b>Bank:</b> <span id="pBank">-</span></div>
+        <!--div><b>bKash:</b> <span id="pBkash">-</span></div>
+        <!--div><b>Nagad:</b> <span id="pNagad">-</span></div-->
+        <div><b>Bank: City Bank</b> 
+        <!--span id="pBank">-</span></div-->
+         <div><b>NANO KINGFISHER</b> 
+          <div><b>A/C No.</b> <span id="pac">1254700686001</span></div>
       </div>
 
     </div>
@@ -244,7 +273,6 @@
     const company = safeText(data.billCompany);
     const name = safeText(data.billName);
 
-    // Company first, then name (and if name empty, it's hidden as you asked)
     if(company) parts.push(`<div><b>${escapeHtml(company)}</b></div>`);
     if(name) parts.push(`<div>${escapeHtml(name)}</div>`);
 
@@ -259,7 +287,7 @@
   }
 
   function normalizeHeadersForPDF(headers){
-    // Force: Description first, Amount last, all others middle
+    // ✅ Force: Description first, Amount last, BUT keep empty headers too (blank columns)
     const hs = Array.isArray(headers) ? headers.slice() : [];
     const isDesc = (h)=> (String(h.__key||"") === "description") || (String(h.title||"").trim().toLowerCase() === "description");
     const isAmount = (h)=> (String(h.__key||"") === "amount") || (String(h.title||"").trim().toLowerCase() === "amount");
@@ -269,30 +297,41 @@
     const mid = hs.filter(h => !isDesc(h) && !isAmount(h));
 
     const out = [];
-    if(desc) out.push(desc);
-    else out.push({ title:"Description", lines:[""] });
-
+    out.push(desc || { __key:"description", title:"Description", lines:[""] });
     out.push(...mid);
+    out.push(amount || { __key:"amount", title:"Amount", lines:[""] });
 
-    if(amount) out.push(amount);
-    else out.push({ title:"Amount", lines:[""] });
+    return out;
+  }
 
-    // Keep only those that have any visible content OR title exists (like your old logic)
-    return out.filter(h => (safeText(h.title) !== "" || (h.lines||[]).some(v => safeText(v) !== "")));
+  function isNumericLike(v){
+    const s = String(v ?? "").trim();
+    if(!s) return false;
+    const cleaned = s.replace(/[, ]+/g,"");
+    return /^-?\d+(\.\d+)?$/.test(cleaned);
   }
 
   function buildTable(headers){
+    const colg = el("pColg");
     const thead = el("pThead");
     const tbody = el("pTbody");
+    colg.innerHTML = "";
     thead.innerHTML = "";
     tbody.innerHTML = "";
 
     const activeHeaders = normalizeHeadersForPDF(headers);
-    if(activeHeaders.length === 0){
-      thead.innerHTML = `<tr><th>Details</th></tr>`;
-      tbody.innerHTML = `<tr><td>-</td></tr>`;
-      return;
-    }
+
+    // ✅ Amount column fixed width, last column (no extra blank after)
+    activeHeaders.forEach((h, idx)=>{
+      const col = document.createElement("col");
+      const key = String(h.__key||"");
+      const title = String(h.title||"").trim().toLowerCase();
+      const isAmountCol = (key==="amount") || (title==="amount");
+      if(isAmountCol){
+        col.style.width = "95px";
+      }
+      colg.appendChild(col);
+    });
 
     let maxRows = 0;
     activeHeaders.forEach(h => { maxRows = Math.max(maxRows, (h.lines||[]).length); });
@@ -301,7 +340,9 @@
     const trh = document.createElement("tr");
     activeHeaders.forEach(h=>{
       const th = document.createElement("th");
-      th.textContent = safeText(h.title) || "-";
+      const t = String(h.title ?? "");
+      // ✅ allow blank header (for spacing control)
+      th.innerHTML = t.trim() ? escapeHtml(t.trim()) : "&nbsp;";
       trh.appendChild(th);
     });
     thead.appendChild(trh);
@@ -311,7 +352,17 @@
       activeHeaders.forEach(h=>{
         const td = document.createElement("td");
         const val = (h.lines && h.lines[r]) ? String(h.lines[r]) : "";
-        td.textContent = safeText(val);
+        const clean = String(val ?? "").trim();
+
+        if(isNumericLike(clean)){
+          td.className = "isNum";
+        }else{
+          td.className = "isText";
+        }
+
+        // ✅ empty হলেও 1 লাইনের সমান height থাকবে
+        td.textContent = clean ? clean : "\u00A0";
+
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
@@ -321,24 +372,20 @@
   function render(){
     const data = getData();
 
-    // Business info
     el("pBiz").textContent = (data.fixedBiz && data.fixedBiz.name) ? data.fixedBiz.name : "NANOKINGFISHER";
     const biz = data.fixedBiz || {};
     el("pBizInfo").innerHTML = `
-      <span class="row"><b>Address:</b> ${escapeHtml(biz.address || "MYMENSINGH MASKANDA")}</span>
-      <span class="row"><b>Phone:</b> ${escapeHtml(biz.phone || "01805003217")}</span>
+      <span class="row"><b>Contcat:</b> ${escapeHtml(biz.phone || "01805003217")}</span>
+     <span class="row"><b>Address:</b> ${escapeHtml(biz.address || "MYMENSINGH MASKANDA")}</span>
       <span class="row"><b>Email:</b> ${escapeHtml(biz.email || "nanokingfisher@gmail.com")}</span>
     `;
 
-    // Invoice meta moved to right box
     el("pInvNo").textContent = safeText(data.invNo) || "-";
     el("pInvDate").textContent = safeText(data.invDate) || "-";
 
-    // Bill To fixed title
     el("pBillToTitle").textContent = "Bill To";
     el("pBillBox").innerHTML = buildBillBox(data);
 
-    // totals
     const t = data.totals || {};
     el("pSub").textContent = fmt(t.sub || 0);
     el("pDisc").textContent = fmt(t.discount || 0);
@@ -346,28 +393,31 @@
     el("pPaid").textContent = fmt(t.paid || 0);
     el("pDue").textContent = fmt(t.due || 0);
 
-    // notes
     const notes = safeText(data.notes);
     el("pNotes").textContent = notes ? notes : "-";
 
-    // payment (from form)
-    const pay = data.payment || {};
-    el("pBkash").textContent = safeText(pay.bkash) || "-";
-    el("pNagad").textContent = safeText(pay.nagad) || "-";
-    el("pBank").textContent = safeText(pay.bank) || "-";
+    //const pay = data.payment || {};
+   // el("pBkash").textContent = safeText(pay.bkash) || "-";
+   // el("pNagad").textContent = safeText(pay.nagad) || "-";
+    //el("pBank").textContent = safeText(pay.bank) || "-";
+    
 
-    // table
     buildTable(data.headers);
   }
 
   async function captureA4Canvas(){
     const node = el("a4Doc");
-    const scale = 3; // stronger to reduce "fuzzy/broken" text
+
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const scale = Math.min(4, 2 * dpr);
+
     return await html2canvas(node, {
       scale,
       backgroundColor:"#ffffff",
       useCORS:true,
-      letterRendering:true
+      letterRendering:true,
+      windowWidth: node.scrollWidth,
+      windowHeight: node.scrollHeight
     });
   }
 
@@ -399,7 +449,7 @@
   async function savePDF(){
     render();
     const canvas = await captureA4Canvas();
-    // PNG keeps text crisper than JPEG
+
     const imgData = canvas.toDataURL("image/png");
 
     const { jsPDF } = window.jspdf;
