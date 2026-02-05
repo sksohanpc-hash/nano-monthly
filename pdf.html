@@ -408,8 +408,8 @@
   async function captureA4Canvas(){
     const node = el("a4Doc");
 
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    const scale = Math.min(4, 2 * dpr);
+    // ✅ MB কমানোর জন্য fixed scale (আগের মতো high DPR scale না)
+    const scale = 2;
 
     return await html2canvas(node, {
       scale,
@@ -450,11 +450,15 @@
     render();
     const canvas = await captureA4Canvas();
 
-    const imgData = canvas.toDataURL("image/png");
+    // ✅ PNG না, JPEG দিলে PDF অনেক ছোট হবে
+    const imgData = canvas.toDataURL("image/jpeg", 0.82);
 
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF("p", "mm", "a4");
-    pdf.addImage(imgData, "PNG", 0, 0, 210, 297);
+
+    // ✅ compress:true দিলে আরও ছোট হবে
+    const pdf = new jsPDF({ orientation:"p", unit:"mm", format:"a4", compress:true });
+
+    pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
 
     const blob = pdf.output("blob");
     downloadBlob(blob, `${safeFileBase()}.pdf`);
