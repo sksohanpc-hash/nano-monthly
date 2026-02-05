@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>NANOKINGFISHER - Quotation PDF</title>
+
+  <!-- PDF/Image libs -->
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#f3f4f6;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line: rgba(15,23,42,.12);
+      --shadow: 0 18px 60px rgba(15,23,42,.12);
+      --radius:16px;
+      --pri:#2563eb;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1100px;margin:18px auto;padding:14px}
+    .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px}
+
+    .topbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+    h2{margin:0;font-size:18px}
+    .btns{display:flex;gap:10px;flex-wrap:wrap}
+    button{border:none;cursor:pointer;padding:10px 14px;border-radius:12px;font-weight:900;font-size:14px}
+    .btn-pri{background:var(--pri);color:#fff}
+    .btn-ghost{background:#eef2ff;color:#1e293b}
+    .btn-ok{background:#dcfce7;color:#14532d}
+    .hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:6px}
+
+    .previewShell{display:flex;justify-content:center;align-items:flex-start;padding:10px;overflow:auto}
+
+    /* ✅ A4 safe */
+    .a4{
+      width:720px;
+      min-height:830px;
+      background:#fff;
+      border:1px solid rgba(0,0,0,.10);
+      box-shadow:0 12px 40px rgba(0,0,0,.18);
+      padding:70px;       
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      font-size:9px;                 /* ✅ ছোট */
+    }
+
+    /* header */
+    .qHeader{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px}
+    .logo{width:56px;height:56px;object-fit:contain}
+    .bizName{font-size:12.5px;font-weight:1000}
+    .bizSub{font-size:9px;color:#111827;line-height:1.25}
+    .qTitle{margin-top:3px;font-size:10.5px;font-weight:1000;letter-spacing:.7px;text-transform:uppercase}
+
+    /* meta */
+    .metaWrap{margin-top:8px}
+    .metaTbl{
+      width:auto;
+      margin:0 auto;
+      border-collapse:collapse;
+      font-size:9px;
+    }
+    .metaTbl td{
+      border:1px solid rgba(0,0,0,.25);
+      padding:4px 6px;             /* ✅ ছোট */
+      vertical-align:middle;
+      white-space:nowrap;
+    }
+    .metaLbl{font-weight:1000}
+
+    /* ✅ FIX: table width fixed + centered so it never cuts right */
+    .itemsTbl{
+      width:600px;                
+      max-width:100%;             
+      margin:10px 0 0 0;  
+      border-collapse:collapse;
+      table-layout:fixed;         
+      font-size:9px;
+    }
+
+    .itemsTbl th, .itemsTbl td{
+      border:1px solid rgba(0,0,0,.25);
+      padding:3px 4px;             /* ✅ ছোট */
+      vertical-align:top;
+      text-align:center;           /* ✅ সব center */
+      line-height:1.15;
+      overflow:hidden;
+    }
+
+    .itemsTbl th{
+      font-weight:1000;
+      background:#f8fafc;
+      font-size:8.8px;
+      white-space:nowrap;
+    }
+/* ✅ table কে content অনুযায়ী হিসাব করতে দিন */
+.itemsTbl{ table-layout:auto; width:auto; }
+
+/* ✅ Description header এক লাইনে থাকবে */
+.itemsTbl th.descHead{ white-space:nowrap; }
+
+/* ✅ Description cell লেখা বড় হলে নিচে নামবে */
+.itemsTbl td.descCell{
+  white-space:normal;
+  word-break:break-word;
+  max-width:260px;   /* চাইলে 220/240/280 করতে পারবেন */
+}
+
+
+    /* ✅ column widths (total = 600px) */
+    .col-sl{width:44px}
+    .col-desc{width:220px}
+    .col-model{width:140px}
+    .col-qty{width:46px}
+    .col-up{width:75px}
+    .col-total{width:75px}
+
+    /* ✅ wrap only these */
+    .descCell, .modelCell{
+      white-space:normal;
+      word-break:break-word;
+    }
+
+    .mono{font-variant-numeric: tabular-nums}
+
+    .grandRow td{font-weight:1000;padding:4px 6px}
+    .grandLbl{text-align:left;white-space:nowrap}
+
+    .termsTitle{margin-top:10px;font-weight:1000;font-size:9.4px}
+    .terms{margin-top:5px;color:#0f172a;line-height:1.3;white-space:pre-wrap;font-size:9px}
+
+    @media print{
+      body{background:#fff}
+      .noPrint{display:none !important}
+      .a4{box-shadow:none;border:none}
+      .previewShell{padding:0}
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="panel noPrint">
+    <div class="topbar">
+      <h2>Quotation Preview (PDF Page)</h2>
+      <div class="btns">
+        <button class="btn-ghost" id="btnBack">← Back</button>
+        <button class="btn-ok" id="btnSaveImg">Save Image</button>
+        <button class="btn-pri" id="btnSavePdf">Save PDF</button>
+      </div>
+    </div>
+    <div class="hint">• Save Image = JPG • Save PDF = PDF</div>
+  </div>
+
+  <div class="previewShell">
+    <div class="a4" id="a4Doc">
+
+      <div class="qHeader">
+        <img class="logo" id="pLogo" alt="Logo" />
+        <div class="bizName" id="pBizName">Nano KingFisher</div>
+        <div class="bizSub" id="pBizSub">Maskanda, Mymensingh<br>Mobile: 01966885733</div>
+        <div class="qTitle">QUOTATION</div>
+      </div>
+
+      <div class="metaWrap">
+        <table class="metaTbl">
+          <tr>
+            <td class="metaLbl">Quotation No</td>
+            <td id="pQNo">-</td>
+            <td class="metaLbl">Date</td>
+            <td id="pQDate">-</td>
+          </tr>
+        </table>
+      </div>
+
+      <table class="itemsTbl" id="pItemsTbl">
+        <colgroup>
+          <col class="col-sl">
+          <col class="col-desc">
+          <col class="col-model">
+          <col class="col-qty">
+          <col class="col-up">
+          <col class="col-total">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>S/L</th>
+          <th class="descHead">Item Description</th>
+          <th class="descHead">Brand/Model</th>
+            
+            <th>Qty</th>
+            <th>Unit Price</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="pTbody"></tbody>
+        <tfoot>
+          <tr class="grandRow">
+            <td colspan="5" class="grandLbl">Grand Total</td>
+            <td class="mono" id="pGrand">0.00</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="termsTitle">Terms &amp; Conditions</div>
+      <div class="terms" id="pTerms">-</div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const el = (id)=>document.getElementById(id);
+  const toNum = (v)=> (Number.isFinite(Number(v)) ? Number(v) : 0);
+
+  const fmt = (n)=> toNum(n).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  function getData(){
+    try{ return JSON.parse(localStorage.getItem("NKF_QUOTATION_DATA") || "{}"); }
+    catch(e){ return {}; }
+  }
+
+  function safeText(s){ return String(s ?? "").trim(); }
+
+  function escapeHtml(str){
+    return String(str ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function formatDateNice(iso){
+    const s = String(iso || "").trim();
+    if(!s) return "-";
+    const d = new Date(s + "T00:00:00");
+    if(Number.isNaN(d.getTime())) return s;
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const mm = months[d.getMonth()];
+    const dd = String(d.getDate()).padStart(2,"0");
+    const yy = d.getFullYear();
+    return `${mm} ${dd}, ${yy}`;
+  }
+
+  function calcRowTotal(qty, unitPrice){
+    const q = toNum(String(qty).replace(/[, ]+/g,""));
+    const p = toNum(String(unitPrice).replace(/[, ]+/g,""));
+    return q * p;
+  }
+
+  function render(){
+    const data = getData();
+    const biz = data.biz || {};
+    const q = data.quotation || {};
+    const items = Array.isArray(data.items) ? data.items : [];
+
+    const logoPath = safeText(biz.logoPath) || "logo.png";
+    const logo = el("pLogo");
+    logo.style.display = "block";
+    logo.src = logoPath;
+    logo.onerror = ()=>{ logo.style.display = "none"; };
+
+    el("pBizName").textContent = safeText(biz.name) || "Nano KingFisher";
+
+    const line1 = safeText(biz.address) || "Maskanda, Mymensingh";
+    const line2 = safeText(biz.mobile) ? `Mobile: ${biz.mobile}` : "";
+    const line3 = safeText(biz.email) ? `Email: ${biz.email}` : "";
+    el("pBizSub").innerHTML = [line1,line2,line3].filter(Boolean).map(escapeHtml).join("<br>");
+
+    el("pQNo").textContent = safeText(q.no) || "-";
+    el("pQDate").textContent = formatDateNice(q.date);
+
+    const tbody = el("pTbody");
+    tbody.innerHTML = "";
+    let grand = 0;
+
+    if(items.length === 0){
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>1</td>
+        <td class="descCell">&nbsp;</td>
+        <td class="descCell">${escapeHtml(desc) || "&nbsp;"}</td>
+        <td class="modelCell">${escapeHtml(desc) || "&nbsp;"}</td>
+       
+        <td>1</td>
+        <td class="mono">0.00</td>
+        <td class="mono">0.00</td>
+      `;
+      tbody.appendChild(tr);
+    }else{
+      items.forEach((it, i)=>{
+        const desc = safeText(it.desc || it.description);
+        const model = safeText(it.brand || it.brandModel);
+        const qty = safeText(it.qty);
+        const unitPrice = safeText(it.unitPrice);
+
+        const rowTotal = (safeText(it.total) !== "")
+          ? toNum(String(it.total).replace(/[, ]+/g,""))
+          : calcRowTotal(qty, unitPrice);
+
+        grand += toNum(rowTotal);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${i+1}</td>
+          <td class="descCell">${escapeHtml(desc) || "&nbsp;"}</td>
+          <td class="modelCell">${escapeHtml(model) || "&nbsp;"}</td>
+          <td class="mono">${escapeHtml(qty) || "&nbsp;"}</td>
+          <td class="mono">${unitPrice ? fmt(toNum(unitPrice.replace(/[, ]+/g,""))) : "&nbsp;"}</td>
+          <td class="mono">${fmt(rowTotal)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    el("pGrand").textContent = fmt(grand);
+
+    const terms = safeText(data.terms) || "";
+    el("pTerms").textContent = terms || [
+      "• Prices are quoted in Bangladeshi Taka (BDT).",
+      "• Quotation validity is 30 days from the issue date.",
+      "• Installation & configuration charges are not included.",
+      "• Payment Terms: 50% advance.",
+      "• Warranty as per manufacturer policy."
+    ].join("\n");
+  }
+
+  async function captureA4Canvas(){
+    const node = el("a4Doc");
+    const scale = 2;
+    return await html2canvas(node, {
+      scale,
+      backgroundColor:"#ffffff",
+      useCORS:true,
+      letterRendering:true,
+      windowWidth: node.scrollWidth,
+      windowHeight: node.scrollHeight
+    });
+  }
+
+  function downloadBlob(blob, filename){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  }
+
+  function safeFileBase(){
+    const data = getData();
+    const qno = (data.quotation && data.quotation.no) ? String(data.quotation.no) : "QUOTATION";
+    const base = qno.trim().replace(/[^\w-]+/g,"_");
+    return `NANOKINGFISHER_${base}`;
+  }
+
+  async function saveImage(){
+    render();
+    const canvas = await captureA4Canvas();
+    canvas.toBlob((blob)=> downloadBlob(blob, `${safeFileBase()}.jpg`), "image/jpeg", 0.95);
+  }
+
+  async function savePDF(){
+    render();
+    const canvas = await captureA4Canvas();
+    const imgData = canvas.toDataURL("image/jpeg", 0.82);
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:"p", unit:"mm", format:"a4", compress:true });
+    pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
+
+    downloadBlob(pdf.output("blob"), `${safeFileBase()}.pdf`);
+  }
+
+  document.getElementById("btnBack").addEventListener("click", ()=> history.back());
+  document.getElementById("btnSaveImg").addEventListener("click", saveImage);
+  document.getElementById("btnSavePdf").addEventListener("click", savePDF);
+
+  render();
+</script>
+
+</body>
+</html>
