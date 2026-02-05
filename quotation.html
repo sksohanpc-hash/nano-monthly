@@ -1,1 +1,577 @@
-ggh
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>NANOKINGFISHER - Quotation Builder (Form)</title>
+
+  <style>
+    :root{
+      --bg:#eef2ff;
+      --card:#ffffff;
+      --text:#0f172a;
+      --muted:#64748b;
+      --line: rgba(15,23,42,.12);
+      --shadow: 0 18px 60px rgba(15,23,42,.12);
+      --radius:16px;
+      --pri:#2563eb;
+      --g1:#ecfeff;
+      --g2:#fff7ed;
+      --g3:#f0fdf4;
+      --g4:#fdf2f8;
+      --g5:#f1f5f9;
+
+      --sbw: 270px;
+      --navh: 58px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background: radial-gradient(1200px 600px at 10% 0%, #e0e7ff 0%, rgba(224,231,255,0) 60%),
+                  radial-gradient(1200px 600px at 90% 10%, #dbeafe 0%, rgba(219,234,254,0) 60%),
+                  var(--bg);
+      color:var(--text);
+    }
+
+    /* NAVBAR + SIDEBAR */
+    .navbar{
+      position:fixed; top:0;left:0;right:0;
+      height:var(--navh);
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:0 14px;
+      background: linear-gradient(135deg,#0f172a,#1e293b);
+      color:#fff;
+      z-index:2000;
+      box-shadow:0 14px 40px rgba(0,0,0,.22);
+    }
+    .navLeft{display:flex;align-items:center;gap:12px;min-width:0}
+    .menuBtn{
+      width:42px;height:42px;border-radius:12px;
+      display:grid;place-items:center;cursor:pointer;user-select:none;
+      font-size:22px;background:rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.18);
+    }
+    .navTitle{
+      font-weight:1000;letter-spacing:.5px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+      max-width:70vw;
+    }
+    .navBadge{
+      font-size:12px;font-weight:900;
+      padding:6px 10px;border-radius:999px;
+      background:rgba(255,255,255,.14);
+      border:1px solid rgba(255,255,255,.18);
+      white-space:nowrap;
+    }
+
+    .sidebar{
+      position:fixed;top:0;left:0;width:var(--sbw);height:100vh;
+      padding:14px;
+      background: linear-gradient(180deg,#0b1220,#020617);
+      color:#e5e7eb;
+      transform: translateX(-100%);
+      transition: transform .26s ease;
+      z-index:2100;
+      box-shadow: 18px 0 50px rgba(0,0,0,.25);
+    }
+    .sidebar.open{ transform: translateX(0); }
+    .sbHeader{
+      margin-top:8px;
+      display:flex;align-items:center;gap:10px;
+      padding:8px 6px 14px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+    }
+    .sbLogo{
+      width:44px;height:44px;border-radius:14px;
+      display:grid;place-items:center;
+      background: linear-gradient(135deg,#2563eb,#22d3ee);
+      color:#fff;font-weight:1000;letter-spacing:.2px;
+    }
+    .sbBrand b{display:block;font-size:14px}
+    .sbBrand small{display:block;color:rgba(229,231,235,.70);margin-top:2px}
+    .sbNav{margin-top:14px;display:flex;flex-direction:column;gap:10px}
+    .sbNav a{
+      display:flex;align-items:center;gap:10px;
+      padding:12px 12px;border-radius:14px;
+      text-decoration:none;color:#e5e7eb;
+      background: rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .sbNav a:hover{ background: rgba(255,255,255,.10); }
+    .sbIcon{
+      width:36px;height:36px;border-radius:12px;
+      display:grid;place-items:center;
+      font-weight:1000;color:#0f172a;background:#fff;
+    }
+    .overlay{position:fixed;inset:0;background: rgba(2,6,23,.45);display:none;z-index:2050}
+    .overlay.show{display:block}
+    .page{padding-top: calc(var(--navh) + 10px);}
+
+    /* UI */
+    .wrap{max-width:1100px;margin:18px auto;padding:14px}
+    .panel{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
+    }
+    .topbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+    h2{margin:0;font-size:18px}
+    .btns{display:flex;gap:10px;flex-wrap:wrap}
+    button{border:none;cursor:pointer;padding:10px 14px;border-radius:12px;font-weight:900;font-size:14px}
+    .btn-pri{background:var(--pri);color:#fff}
+    .btn-ghost{background:#eef2ff;color:#1e293b}
+    .btn-danger{background:#fee2e2;color:#7f1d1d}
+
+    .hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}
+
+    .field{display:flex;flex-direction:column;gap:6px}
+    /* ✅ label আরও মোটা + কালার */
+    .field label{
+      font-size:12px;
+      font-weight:1000;
+      color:#1d4ed8; /* blue */
+      letter-spacing:.2px;
+    }
+    .field input, .field textarea, .field select{
+      padding:10px;border:1px solid var(--line);border-radius:12px;font-size:14px;outline:none;
+      background:#fff;
+    }
+    .field textarea{min-height:120px;resize:vertical}
+    .field input:focus, .field textarea:focus, .field select:focus{
+      border-color:rgba(37,99,235,.55);
+      box-shadow:0 0 0 3px rgba(37,99,235,.15)
+    }
+
+    .section{
+      border:1px solid rgba(0,0,0,.08);
+      border-radius:16px;
+      padding:12px;
+      background:#fff;
+    }
+
+    /* ✅ Section Title আরও মোটা + কালার */
+    .secTitle{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;
+      font-size:12px;
+      font-weight:1000;
+      letter-spacing:.6px;
+      color:#0f172a;
+      margin:0 0 10px;
+      text-transform:uppercase;
+    }
+    .secTitle span:first-child{
+      color:#7c3aed; /* purple */
+      font-weight:1000;
+    }
+
+    .tag{
+      font-size:11px;font-weight:900;
+      padding:6px 10px;border-radius:999px;border:1px solid rgba(0,0,0,.10);
+      color:#0f172a;background:#fff;
+      white-space:nowrap;
+    }
+
+    .section.g1{background:linear-gradient(180deg,var(--g1),#fff)}
+    .section.g2{background:linear-gradient(180deg,var(--g2),#fff)}
+    .section.g3{background:linear-gradient(180deg,var(--g3),#fff)}
+    .section.g4{background:linear-gradient(180deg,var(--g4),#fff)}
+    .section.g5{background:linear-gradient(180deg,var(--g5),#fff)}
+
+    .row2always{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .row3{display:grid;grid-template-columns:1fr;gap:12px}
+    @media(min-width:900px){ .row3{grid-template-columns: 1.3fr 1fr 1fr} }
+
+    /* Items builder */
+    .itemsWrap{display:flex;flex-direction:column;gap:10px}
+    .itemCard{
+      border:1px solid rgba(0,0,0,.10);
+      border-radius:14px;
+      padding:10px;
+      background:#fff;
+    }
+    .itemHead{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;
+      margin-bottom:8px;
+    }
+    .itemHead b{font-size:12px;color:#0f172a}
+    .iconBtn{
+      width:40px;height:40px;border-radius:12px;
+      display:grid;place-items:center;
+      font-weight:1000;border:1px solid var(--line);background:#fff;
+      cursor:pointer;
+    }
+    .iconBtn.del{background:#fff1f2;border-color:#fecdd3;color:#9f1239}
+
+    /* ✅ Items grid: এক লাইনে ১টা করে (সব ফিল্ড stack) */
+    .gridItem{
+      display:grid;
+      grid-template-columns: 1fr;  /* ✅ always 1 column */
+      gap:10px;
+    }
+
+    .sumBox{
+      margin-top:10px;
+      border:1px solid rgba(0,0,0,.10);
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .sumRow{display:flex;justify-content:space-between;gap:10px}
+    .sumRow b, .sumRow strong{white-space:nowrap}
+  </style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="navLeft">
+    <div class="menuBtn" id="menuBtn" title="Menu">☰</div>
+    <div class="navTitle">Quotation</div>
+  </div>
+  <div class="navBadge">Menu</div>
+</div>
+
+<div class="sidebar" id="sidebar">
+  <div class="sbHeader">
+    <div class="sbLogo">NK</div>
+    <div class="sbBrand">
+      <b>NANOKINGFISHER</b>
+      <small>Navigation</small>
+    </div>
+  </div>
+
+  <div class="sbNav">
+    <a href="index.html">
+      <div class="sbIcon">1</div>
+      <div><b>Invoice</b><div style="font-size:12px;color:rgba(229,231,235,.75)">index.html</div></div>
+    </a>
+
+    <a href="monthly.html">
+      <div class="sbIcon">2</div>
+      <div><b>মাসিক হিসাব</b><div style="font-size:12px;color:rgba(229,231,235,.75)">monthly.html</div></div>
+    </a>
+
+    <a href="quotation.html">
+      <div class="sbIcon">3</div>
+      <div><b>Quotation</b><div style="font-size:12px;color:rgba(229,231,235,.75)">quotation.html</div></div>
+    </a>
+  </div>
+</div>
+<div class="overlay" id="overlay"></div>
+
+<div class="page">
+  <div class="wrap">
+    <div class="panel">
+
+      <div class="topbar">
+        <h2>Quotation Builder (Form)</h2>
+        <div class="btns">
+          <button class="btn-danger" id="btnReset">Reset (সব ডিফল্ট)</button>
+          <button class="btn-pri" id="btnPreview">Preview</button>
+        </div>
+      </div>
+
+      <!-- Fixed Biz -->
+      <div class="section g1">
+        <div class="secTitle">
+          <span>Business Info (Fixed)</span>
+          <span class="tag">Editable না</span>
+        </div>
+        <div style="font-weight:1000;font-size:18px;letter-spacing:.2px;text-align:center">Nano KingFisher</div>
+        <div style="text-align:center;color:var(--muted);font-size:12px;line-height:1.6;margin-top:6px">
+          Maskanda, Mymensingh<br>
+          Mobile: 01966885733
+        </div>
+        <div class="hint">• Logo PDF পেজে <b>logo.png</b> থেকে আসবে (q2pdf.html এ)।</div>
+      </div>
+
+      <!-- Quotation meta -->
+      <div class="section g2" style="margin-top:12px">
+        <div class="secTitle">
+          <span>Quotation Info</span>
+          <span class="tag">No / Date / Validity</span>
+        </div>
+
+        <div class="row3">
+          <div class="field">
+            <label>Quotation No</label>
+            <input id="qNo" value="NKF-Q-001" />
+          </div>
+          <div class="field">
+            <label>Date</label>
+            <input id="qDate" type="date" value="" />
+          </div>
+          <div class="field">
+            <label>Validity (Days)</label>
+            <input id="qValidity" type="number" value="30" />
+          </div>
+        </div>
+
+        <div class="field" style="margin-top:10px">
+          <label>Prepared By</label>
+          <input id="qPrepared" value="Nano KingFisher" />
+        </div>
+      </div>
+
+      <!-- Items -->
+      <div class="section g4" style="margin-top:12px">
+        <div class="secTitle">
+          <span>Items</span>
+          <span class="tag">Add Item = নতুন লাইন</span>
+        </div>
+
+        <div class="itemsWrap" id="itemsWrap"></div>
+
+        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-ghost" id="btnAddItem" type="button">+ Add Item</button>
+        </div>
+
+        <div class="sumBox">
+          <div class="sumRow"><span>Grand Total (TK)</span> <strong id="uiGrand">0</strong></div>
+        </div>
+
+        <div class="hint">• Qty × Unit Price = Total (অটো)</div>
+      </div>
+
+      <!-- Terms -->
+      <div class="section g5" style="margin-top:12px">
+        <div class="secTitle">
+          <span>Terms & Conditions</span>
+          <span class="tag">Editable</span>
+        </div>
+        <div class="field">
+          <label>Terms</label>
+          <textarea id="terms"></textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  (function(){
+    const sb = document.getElementById("sidebar");
+    const ov = document.getElementById("overlay");
+    const btn = document.getElementById("menuBtn");
+    function toggle(){ sb.classList.toggle("open"); ov.classList.toggle("show"); }
+    btn.addEventListener("click", toggle);
+    ov.addEventListener("click", toggle);
+    document.addEventListener("keydown",(e)=>{
+      if(e.key==="Escape" && sb.classList.contains("open")){
+        sb.classList.remove("open"); ov.classList.remove("show");
+      }
+    });
+  })();
+</script>
+
+<script>
+  const el = (id)=>document.getElementById(id);
+  const toNum = (v)=> (Number.isFinite(Number(v)) ? Number(v) : 0);
+  const fmt = (n)=> toNum(n).toLocaleString("en-IN");
+
+  function pad2(n){ return String(n).padStart(2,"0"); }
+  function todayISO(){
+    const d = new Date();
+    return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+  }
+
+  const defaultTerms =
+`• Prices are quoted in Bangladeshi Taka (BDT).
+• Quotation validity is 30 days from the issue date.
+• Installation & configuration charges are not included.
+• Payment Terms: 50% advance.
+• Warranty as per manufacturer policy.`;
+
+  let items = [];
+
+  function calcGrand(){
+    let sum = 0;
+    for(const it of items){
+      const qty = toNum(it.qty);
+      const rate = toNum(it.unitPrice);
+      sum += (qty * rate);
+    }
+    return sum;
+  }
+
+  function recalcUI(){
+    el("uiGrand").textContent = fmt(calcGrand());
+  }
+
+function itemCard(i){
+  const it = items[i];
+
+  const card = document.createElement("div");
+  card.className = "itemCard";
+
+  const head = document.createElement("div");
+  head.className = "itemHead";
+
+  const title = document.createElement("b");
+  title.textContent = `Item #${i+1}`;
+
+  const del = document.createElement("button");
+  del.className = "iconBtn del";
+  del.type = "button";
+  del.textContent = "×";
+
+  del.addEventListener("click", ()=>{
+    if(items.length <= 1){
+      items[0] = { desc:"", brand:"", qty:1, unitPrice:0 };
+    }else{
+      items.splice(i,1);
+    }
+    renderItems();
+    recalcUI();
+  });
+
+  head.appendChild(title);
+  head.appendChild(del);
+
+  const grid = document.createElement("div");
+  grid.className = "gridItem";
+
+  function makeField(labelText, value, onChange, opts = {}){
+    const wrap = document.createElement("div");
+    wrap.className = "field";
+
+    const lb = document.createElement("label");
+    lb.textContent = labelText;
+
+    const inp = document.createElement("input");
+    inp.type = opts.type || "text";
+    inp.value = value ?? "";
+    inp.placeholder = opts.placeholder || "";
+
+    if(opts.numeric){
+      inp.inputMode = "numeric";
+      inp.pattern = "[0-9]*";
+    }
+
+    inp.addEventListener("input", ()=> onChange(inp.value));
+
+    wrap.appendChild(lb);
+    wrap.appendChild(inp);
+    return wrap;
+  }
+
+  const fDesc = makeField(
+    "Item Description",
+    it.desc,
+    v => items[i].desc = v,
+    { placeholder:"যেমন: Dahua Eyeball Dome IP Camera" }
+  );
+
+  const fBrand = makeField(
+    "Brand / Model",
+    it.brand,
+    v => items[i].brand = v,
+    { placeholder:"যেমন: Dahua (2MP)" }
+  );
+
+  const fQty = makeField(
+    "Qty",
+    it.qty,
+    v => { items[i].qty = v; recalcUI(); },
+    { type:"number", numeric:true }
+  );
+
+  const fRate = makeField(
+    "Unit Price (TK)",
+    it.unitPrice,
+    v => { items[i].unitPrice = v; recalcUI(); },
+    { type:"number", numeric:true }
+  );
+
+  grid.appendChild(fDesc);
+  grid.appendChild(fBrand);
+  grid.appendChild(fQty);
+  grid.appendChild(fRate);
+
+  const rowTotal = document.createElement("div");
+  rowTotal.style.marginTop = "10px";
+  rowTotal.style.textAlign = "right";
+  rowTotal.style.fontWeight = "1000";
+  rowTotal.textContent =
+    "Total (TK): " + fmt(toNum(it.qty) * toNum(it.unitPrice));
+
+  card.appendChild(head);
+  card.appendChild(grid);
+  card.appendChild(rowTotal);
+
+  return card;
+}
+
+  function renderItems(){
+    const wrap = el("itemsWrap");
+    wrap.innerHTML = "";
+    items.forEach((_, i)=> wrap.appendChild(itemCard(i)));
+  }
+
+  function resetAll(){
+    el("qNo").value = "NKF-Q-001";
+    el("qDate").value = todayISO();
+    el("qPrepared").value = "Nano KingFisher";
+    el("qValidity").value = 30;
+
+    el("terms").value = defaultTerms;
+
+    items = [
+      { desc:"", brand:"", qty:1, unitPrice:0 }
+    ];
+
+    renderItems();
+    recalcUI();
+  }
+
+  function collectData(){
+    const data = {
+      biz: {
+        name: "Nano KingFisher",
+        address: "Maskanda, Mymensingh",
+        mobile: "01966885733",
+        logoPath: "logo.png"
+      },
+      quotation: {
+        no: (el("qNo").value || "").trim() || "NKF-Q-001",
+        date: (el("qDate").value || "").trim(),
+        preparedBy: (el("qPrepared").value || "").trim() || "Nano KingFisher",
+        validityDays: toNum(el("qValidity").value) || 30
+      },
+      items: items.map(x=>({
+        desc: String(x.desc ?? "").trim(),
+        brand: String(x.brand ?? "").trim(),
+        qty: toNum(x.qty),
+        unitPrice: toNum(x.unitPrice)
+      })),
+      totals: { grand: calcGrand() },
+      terms: (el("terms").value || "").trim() || defaultTerms
+    };
+    return data;
+  }
+
+  document.getElementById("btnAddItem").addEventListener("click", ()=>{
+    items.push({ desc:"", brand:"", qty:1, unitPrice:0 });
+    renderItems();
+    recalcUI();
+  });
+
+  document.getElementById("btnReset").addEventListener("click", resetAll);
+
+  document.getElementById("btnPreview").addEventListener("click", ()=>{
+    const data = collectData();
+    localStorage.setItem("NKF_QUOTATION_DATA", JSON.stringify(data));
+    window.location.href = "q2pdf.html";
+  });
+
+  resetAll();
+</script>
+
+</body>
+</html>
